@@ -1,0 +1,9 @@
+[Core]
+Name = Plugins
+Module = plugins
+
+[Documentation]
+Author = Vincent Castellano
+Version = 0.1
+Website = http://lotsofplugins.com
+Description = Plugin to manage other plugins. Enable, disable or reload.

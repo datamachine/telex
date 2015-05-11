@@ -1,5 +1,6 @@
 import tgl
 import logging
+import re
 from TelegramPluginManager import TelegramPluginManager
 
 try:
@@ -16,19 +17,19 @@ class TelegramBot:
     binlog_done = False
 
     def __init__(self):
-        self.pluginManager = TelegramPluginManager(self)
+        self.plugin_manager = TelegramPluginManager(self)
         self.load_plugins()
 
     def load_plugins(self):
         # Tell it the default place(s) where to find plugins
-        self.pluginManager.setPluginPlaces(["./plugins/"])
+        self.plugin_manager.setPluginPlaces(["./plugins/"])
         # Load all plugins
-        self.pluginManager.collectPlugins()
+        self.plugin_manager.collectPlugins()
 
         # Activate all loaded plugins
-        for plugin_info in self.pluginManager.getAllPlugins():
+        for plugin_info in self.plugin_manager.getAllPlugins():
             plugin_info.bot = self
-            self.pluginManager.activatePluginByName(plugin_info.name)
+            self.plugin_manager.activatePluginByName(plugin_info.name)
 
     # Callbacks
     def on_binlog_replay_end(self):
@@ -42,8 +43,25 @@ class TelegramBot:
         return "Set ID: " + str(self.our_id)
 
     def on_msg_receive(self, msg):
-        for pluginInfo in self.pluginManager.getAllPlugins():
-            pluginInfo.plugin_object.on_msg_receive(msg)
+        if msg["out"] and not self.binlog_done:
+            return
+
+        if msg["to"]["id"] == self.our_id:  # direct message
+            ptype = msg["from"]["type"]
+            pid = msg["from"]["id"]
+        else:  # chat room
+            ptype = msg["to"]["type"]
+            pid = msg["to"]["id"]
+
+        for plugin_info in self.plugin_manager.getAllPlugins():
+            for pattern in plugin_info.plugin_object.patterns:
+                if plugin_info.plugin_object.is_activated:
+                    matches = re.search(pattern, msg["text"])
+                    if matches is not None:
+                        reply = plugin_info.plugin_object.run(msg["text"], matches)
+
+                        if reply is not None:
+                            send_msg(ptype, pid, reply)
 
     def on_secret_chat_update(self, peer, types):
         return "on_secret_chat_update"
@@ -82,6 +100,6 @@ if __name__ == "__main__":
     message["to"]["id"] = 333
     message["to"]["type"] = 1
     message["out"] = False
-    message["text"] = "!ping"
+    message["text"] = "!plugins"
 
     bot.on_msg_receive(message)
