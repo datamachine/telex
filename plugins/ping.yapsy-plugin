@@ -1,0 +1,9 @@
+[Core]
+Name = Ping
+Module = ping
+
+[Documentation]
+Author = Vincent Castellano
+Version = 0.1
+Website = http://lotsofplugins.com
+Description = Simple Ping/Pong Plugin
