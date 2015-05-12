@@ -1,5 +1,9 @@
 import logging
-import tgl
+try:
+    import tgl
+except ImportError:
+    import test_harness.tgl as tgl
+
 from configobj import ConfigObj
 import re
 from TelegramPluginManager import TelegramPluginManager
