@@ -1,12 +1,11 @@
 import plugintypes
 
-class EchoPlugin(plugintypes.TelegramPlugin):
+class HelpPlugin(plugintypes.TelegramPlugin):
     """
-    Just print the contents of the command
+    Print help for telegram-bot and plugins
     """
     patterns = [
         "^!help$",
-        "^!help all",
         "^!help (.+)",
     ]
 

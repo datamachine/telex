@@ -149,6 +149,6 @@ if __name__ == "__main__":
     message["to"]["id"] = 333
     message["to"]["type"] = 1
     message["out"] = False
-    message["text"] = "!echo 5*5"
-
+    message["text"] = "!roll 1d5+5+2d3"
+    print("Sending {0}".format(message["text"]))
     bot.on_msg_receive(message)
