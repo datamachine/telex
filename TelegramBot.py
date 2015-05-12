@@ -1,5 +1,6 @@
-import tgl
 import logging
+import tgl
+from configobj import ConfigObj
 import re
 from TelegramPluginManager import TelegramPluginManager
 
@@ -12,9 +13,32 @@ class TelegramBot:
     binlog_done = False
 
     def __init__(self):
+        self.config = ConfigObj("telegram-bot.conf")
+        if len(self.config) == 0:
+            self.init_config()
+
+
         self.plugin_manager = TelegramPluginManager(self)
         self.load_plugins()
 
+
+    # Config Management
+    def init_config(self):
+        self.config["enabled_plugins"] = [
+            "Help",
+            "Plugins",
+            "Calculator",
+            "BTC",
+            "Echo",
+        ]
+
+        self.config["admin_users"] = [
+            self.our_id,
+        ]
+
+        self.config.write()
+
+    # Plugin Management
     def load_plugins(self):
         # Tell it the default place(s) where to find plugins
         self.plugin_manager.setPluginPlaces(["./plugins/"])
@@ -24,7 +48,37 @@ class TelegramBot:
         # Activate all loaded plugins
         for plugin_info in self.plugin_manager.getAllPlugins():
             plugin_info.bot = self
-            self.plugin_manager.activatePluginByName(plugin_info.name)
+            if plugin_info.name in self.config["enabled_plugins"]:
+                self.plugin_manager.activatePluginByName(plugin_info.name)
+            else:
+                self.plugin_manager.deactivatePluginByName(plugin_info.name)
+
+    def get_plugins(self):
+        return self.plugin_manager.getAllPlugins()
+
+    def get_plugin(self, name):
+        return self.plugin_manager.getPluginByName(name)
+
+    def enable_plugin(self, name):
+        plugin = self.plugin_manager.activatePluginByName(name)
+        if plugin is None:
+            return "Plugin {0} does not exist".format(name)
+        else:
+            self.config["enabled_plugins"].append(name)
+            self.config.write()
+            return "Plugin {0} enabled".format(name)
+
+    def disable_plugin(self, name):
+        plugin = self.plugin_manager.deactivatePluginByName(name)
+        if plugin is None:
+            return "Plugin {0} does not exist".format(name)
+        else:
+            try:
+                self.config["enabled_plugins"].remove(name)
+            except ValueError:
+                pass  # Wasn't in the config file.
+            self.config.write()
+            return "Plugin {0} disabled".format(name)
 
     # Callbacks
     def on_binlog_replay_end(self):
@@ -95,6 +149,6 @@ if __name__ == "__main__":
     message["to"]["id"] = 333
     message["to"]["type"] = 1
     message["out"] = False
-    message["text"] = "!btc USD 55"
+    message["text"] = "!echo 5*5"
 
     bot.on_msg_receive(message)

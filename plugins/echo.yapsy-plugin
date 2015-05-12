@@ -1,9 +1,9 @@
 [Core]
-Name = Ping
-Module = ping
+Name = Echo
+Module = echo
 
 [Documentation]
 Author = Vincent Castellano
 Version = 0.1
 Website = https://github.com/datamachine/telegram-pybot
-Description = Simple Ping/Pong Plugin
+Description = Just print the contents of the command

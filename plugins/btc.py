@@ -6,7 +6,7 @@ import json
 
 class BTCPlugin(plugintypes.TelegramPlugin):
     """
-    Return PONG in response to !ping
+    Retrieve BTC prices
     """
     patterns = [
         "^!btc$",
@@ -15,6 +15,10 @@ class BTCPlugin(plugintypes.TelegramPlugin):
         "^!btc (EUR) (\d+[\d.]*)$",
         "^!btc (USD) (\d+[\d.]*)$",
         ]
+
+    usage = [
+        "!btc [EUR|USD] [amount]"
+    ]
 
     def run(self, msg, matches):
         cur = 'USD'
