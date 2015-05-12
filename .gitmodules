@@ -1,0 +1,4 @@
+[submodule "tg"]
+	path = tg
+	url = https://github.com/datamachine/tg
+	branch = python-bindings
