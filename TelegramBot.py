@@ -3,12 +3,7 @@ import logging
 import re
 from TelegramPluginManager import TelegramPluginManager
 
-try:
-    import imp
-except ImportError:
-    import importlib as imp
-
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
 
@@ -100,6 +95,6 @@ if __name__ == "__main__":
     message["to"]["id"] = 333
     message["to"]["type"] = 1
     message["out"] = False
-    message["text"] = "!plugins"
+    message["text"] = "!btc USD 55"
 
     bot.on_msg_receive(message)

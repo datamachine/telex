@@ -5,5 +5,5 @@ Module = ping
 [Documentation]
 Author = Vincent Castellano
 Version = 0.1
-Website = http://lotsofplugins.com
+Website = https://github.com/datamachine/telegram-pybot
 Description = Simple Ping/Pong Plugin
