@@ -8,7 +8,7 @@ from configobj import ConfigObj
 import re
 from TelegramPluginManager import TelegramPluginManager
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
 
@@ -156,15 +156,28 @@ if __name__ == "__main__":
     bot.on_our_id(999)
 
     import datetime
-    message = dict()
-    message["date"] = datetime.datetime.now()
-    message["from"] = dict()
-    message["from"]["id"] = 222
-    message["from"]["type"] = 1
-    message["to"] = dict()
-    message["to"]["id"] = 333
-    message["to"]["type"] = 1
-    message["out"] = False
-    message["text"] = "Test Msg"
+    message = {
+        'date': datetime.datetime.now(),
+        'flags': 16.0,
+        'from': {'id': 9999999,
+                 'peer': {'access_hash': 1.0,
+                          'first_name': 'Tester',
+                          'last_name': 'Person',
+                          'username': 'TestSender'},
+                 'type': 1,
+                 'type_str': 'user'},
+        'id': '555',
+        'out': False,
+        'service': False,
+        'text': '!stats',
+        'to': {'id': 111111,
+                'peer': {'first_name': 'Bot',
+                         'last_name': 'McBot',
+                         'phone': '155555555',
+                         'username': 'TestBot'},
+                'type': 1,
+                'type_str': 'user'},
+        'unread': True}
+
     print("Sending {0}".format(message["text"]))
     bot.on_msg_receive(message)

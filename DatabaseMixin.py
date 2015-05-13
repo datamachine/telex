@@ -44,7 +44,7 @@ class DatabaseMixin():
                 columns=", ".join(kwargs.keys()),
                 values="', '".join([str(kwargs[col]) for col in kwargs.keys()])
             )
-            logging.debug(sql)
+            #logging.debug(sql)
             cur.execute(sql)
             self.conn.commit()
         except sqlite3.Error as e:
@@ -60,7 +60,7 @@ class DatabaseMixin():
                 columns=", ".join(kwargs.keys()),
                 values=" AND ".join(["{0} = '{1}'".format(col, str(kwargs[col])) for col in kwargs.keys()])
             )
-            logging.debug(sql)
+            #logging.debug(sql)
             cur.execute(sql)
             return cur.fetchall()
         except sqlite3.Error as e:
@@ -71,7 +71,7 @@ class DatabaseMixin():
     def query(self, sql):
         try:
             cur = self.conn.cursor()
-            logging.debug(sql)
+            #logging.debug(sql)
             cur.execute(sql)
             return cur.fetchall()
         except sqlite3.Error as e:
