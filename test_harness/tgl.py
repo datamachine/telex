@@ -46,3 +46,7 @@ def set_on_chat_update(on_chat_update):
 
 def send_msg(peer_type, peer_id, msg):
     print("type: {0}, id: {1} msg:\n{2}".format(peer_type, peer_id, msg))
+
+
+def mark_read(peer_type, peer_id):
+    pass

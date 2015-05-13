@@ -8,7 +8,7 @@ from configobj import ConfigObj
 import re
 from TelegramPluginManager import TelegramPluginManager
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 
@@ -106,6 +106,14 @@ class TelegramBot:
             ptype = msg["to"]["type"]
             pid = msg["to"]["id"]
 
+        # run pre_process
+        for plugin_info in self.plugin_manager.getAllPlugins():
+            if plugin_info.plugin_object.is_activated:
+                msg = plugin_info.plugin_object.pre_process(msg)
+
+
+
+        # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
             for pattern in plugin_info.plugin_object.patterns:
                 if plugin_info.plugin_object.is_activated:
@@ -116,8 +124,10 @@ class TelegramBot:
                         if reply is not None:
                             send_msg(ptype, pid, reply)
 
+        tgl.mark_read(ptype, pid)
+
     def on_secret_chat_update(self, peer, types):
-        return "on_secret_chat_update"
+        pass
 
     def on_user_update(self):
         pass
@@ -145,7 +155,9 @@ if __name__ == "__main__":
     bot.on_binlog_replay_end()
     bot.on_our_id(999)
 
+    import datetime
     message = dict()
+    message["date"] = datetime.datetime.now()
     message["from"] = dict()
     message["from"]["id"] = 222
     message["from"]["type"] = 1
@@ -153,6 +165,6 @@ if __name__ == "__main__":
     message["to"]["id"] = 333
     message["to"]["type"] = 1
     message["out"] = False
-    message["text"] = "!roll 1d5+5+2d3"
+    message["text"] = "Test Msg"
     print("Sending {0}".format(message["text"]))
     bot.on_msg_receive(message)

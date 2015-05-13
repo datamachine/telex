@@ -1,0 +1,9 @@
+[Core]
+Name = ChatLog
+Module = chatlog
+
+[Documentation]
+Author = Vincent Castellano
+Version = 0.1
+Website = https://github.com/datamachine/telegram-pybot
+Description = Tracks a chat log and provides statistics and queries

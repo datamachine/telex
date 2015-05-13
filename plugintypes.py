@@ -7,3 +7,6 @@ class TelegramPlugin(IPlugin):
 
     def run(self, msg, matches):
         raise NotImplementedError
+
+    def pre_process(self, msg):
+        return msg
