@@ -52,7 +52,7 @@ class DatabaseMixin():
         finally:
             cur.close()
 
-    def query(self, **kwargs):
+    def select(self, **kwargs):
         try:
             cur = self.conn.cursor()
             sql = "SELECT  {columns} FROM {table} WHERE 1 {values}".format(
@@ -60,6 +60,17 @@ class DatabaseMixin():
                 columns=", ".join(kwargs.keys()),
                 values=" AND ".join(["{0} = '{1}'".format(col, str(kwargs[col])) for col in kwargs.keys()])
             )
+            logging.debug(sql)
+            cur.execute(sql)
+            return cur.fetchall()
+        except sqlite3.Error as e:
+            logging.error("Error selecting table {0}: {1}".format(self.table_name, e.args[0]))
+        finally:
+            cur.close()
+
+    def query(self, sql):
+        try:
+            cur = self.conn.cursor()
             logging.debug(sql)
             cur.execute(sql)
             return cur.fetchall()
