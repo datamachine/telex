@@ -34,6 +34,7 @@ class TelegramBot:
             "Calculator",
             "BTC",
             "Echo",
+            "ChatLog",
         ]
 
         self.config["admin_users"] = [
