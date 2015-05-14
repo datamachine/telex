@@ -39,8 +39,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     def run(self, msg, matches):
         if matches.group(0) == "!stats":
             return self.stats_count(msg["to"]["id"])
-        if matches.group(0) == "!loadhistory$":
-            return self.load_history(msg["to"]["id"])
+        if matches.group(0) == "!loadhistory":
+            return self.load_history(msg["to"]["type"], msg["to"]["id"])
 
     def pre_process(self, msg):
         self.insert(msg_id=msg["id"], timestamp=msg["date"],
@@ -67,9 +67,10 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                             partial(self.history_cb, msg_count, chat_type, chat_id))
 
     def insert_history(self, msgs):
+        # TODO Support Media Msgs
         values = [[msg["id"], msg["date"], msg["from"]["id"], msg["from"]["peer"]["username"],
                    "{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"]["last_name"]),
-                   msg["to"]["id"], msg["text"]] for msg in msgs]
+                   msg["to"]["id"], msg["text"]] for msg in msgs if "text" in msg]
         columns = ['msg_id', 'timestamp', 'uid', 'username', 'full_name', 'chat_id', 'message']
 
         self.insert_many(columns, values)
