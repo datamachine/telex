@@ -9,6 +9,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     """
     patterns = [
         "^!stats$"
+        "^!loadhistory$"
     ]
 
     usage = [
@@ -42,7 +43,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         return msg
 
     def stats_count(self):
-        results = self.query("SELECT full_name, uid, COUNT(*) as count from {0} GROUP BY uid ORDER BY count".format(self.table_name))
+        results = self.query("SELECT full_name, uid, COUNT(*) as count from {0} GROUP BY uid ORDER BY count DESC".format(self.table_name))
         text = "Channel Chat Statistics (count):\n"
         for result in results:
             text += "{name} ({uid}): {count}\n".format(name=result["full_name"],

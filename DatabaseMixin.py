@@ -39,13 +39,17 @@ class DatabaseMixin():
     def insert(self, **kwargs):
         try:
             cur = self.conn.cursor()
-            sql = "INSERT INTO {table} ({columns}) VALUES ('{values}')".format(
+            columns = kwargs.keys()
+            parameters = ",".join(["?"] * len(columns))
+            values = kwargs.values()
+
+            sql = "INSERT INTO {table} ({columns}) VALUES ({values})".format(
                 table=self.table_name,
-                columns=", ".join(kwargs.keys()),
-                values="', '".join([str(kwargs[col]) for col in kwargs.keys()])
+                columns=", ".join(columns),
+                values="', '".join(parameters)
             )
             #logging.debug(sql)
-            cur.execute(sql)
+            cur.execute(sql, values)
             self.conn.commit()
         except sqlite3.Error as e:
             logging.error("Error inserting into {0}: {1}".format(self.table_name, e.args[0]))

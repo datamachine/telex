@@ -125,7 +125,7 @@ class TelegramBot:
                         if reply is not None:
                             send_msg(ptype, pid, reply)
 
-        tgl.mark_read(ptype, pid, None)
+        tgl.mark_read(ptype, pid)
 
     def on_secret_chat_update(self, peer, types):
         pass
