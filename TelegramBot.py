@@ -120,7 +120,7 @@ class TelegramBot:
                 if plugin_info.plugin_object.is_activated:
                     matches = re.search(pattern, msg["text"])
                     if matches is not None:
-                        reply = plugin_info.plugin_object.run(msg["text"], matches)
+                        reply = plugin_info.plugin_object.run(msg, matches)
 
                         if reply is not None:
                             send_msg(ptype, pid, reply)

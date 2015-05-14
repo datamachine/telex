@@ -8,7 +8,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     Tracks a chat log and provides statistics and queries
     """
     patterns = [
-        "^!stats$"
+        "^!stats$",
         "^!loadhistory$"
     ]
 
@@ -33,7 +33,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
     def run(self, msg, matches):
         if matches.group(0) == "!stats":
-            return self.stats_count()
+            return self.stats_count(msg["to"]["id"])
 
     def pre_process(self, msg):
         self.insert(msg_id=msg["id"], timestamp=msg["date"],
@@ -42,11 +42,12 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                     chat_id=msg["to"]["id"], message=msg["text"])
         return msg
 
-    def stats_count(self):
-        results = self.query("SELECT full_name, uid, COUNT(*) as count from {0} GROUP BY uid ORDER BY count DESC".format(self.table_name))
+    def stats_count(self, chat_id):
+        results = self.query("SELECT full_name, uid, COUNT(*) as count FROM {0} WHERE uid != {1} AND chat_id = {2} GROUP BY uid ORDER BY count DESC".format(self.table_name, self.bot.our_id, chat_id))
         text = "Channel Chat Statistics (count):\n"
         for result in results:
             text += "{name} ({uid}): {count}\n".format(name=result["full_name"],
                                                        uid=result["uid"],
                                                        count=result["count"])
+        print(text)
         return text
