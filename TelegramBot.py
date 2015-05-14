@@ -165,10 +165,10 @@ class TelegramBot:
     def on_secret_chat_update(self, peer, types):
         pass
 
-    def on_user_update(self):
+    def on_user_update(self, peer, types):
         pass
 
-    def on_chat_update(self):
+    def on_chat_update(self, peer, types):
         pass
 
 
