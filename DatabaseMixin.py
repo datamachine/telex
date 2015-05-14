@@ -9,7 +9,7 @@ class DatabaseMixin():
         if not hasattr(self, "schema"):
             raise DatabaseError("Missing Schema in plugin {0}".format(self.table_name))
 
-        self.conn = sqlite3.connect('data/data.db')
+        self.conn = sqlite3.connect('data/data.sqlite')
         self.conn.row_factory = DatabaseMixin.dict_factory
         self.create_schema()
 
@@ -26,9 +26,15 @@ class DatabaseMixin():
             cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (self.table_name,))
             if cur.fetchone() is None:
                 logging.debug("Initializing schema for {0}".format(self.table_name))
+                columns = []
+                for col, dbtype in self.schema.items():
+                    pkey = ""
+                    if hasattr(self, 'primary_key') and col == self.primary_key:
+                        pkey = "PRIMARY KEY"
 
-                columns = ", ".join(["{0} {1}".format(col, dbtype.value) for col, dbtype in self.schema.items()])
-                sql = "CREATE TABLE {0}( {1} );".format(self.table_name, columns)
+                    columns.append("{0} {1} {2}".format(col, dbtype.value, pkey))
+
+                sql = "CREATE TABLE {0}( {1} );".format(self.table_name, ", ".join(columns))
                 logging.debug(sql)
                 self.conn.execute(sql)
         except sqlite3.Error as e:
@@ -43,7 +49,8 @@ class DatabaseMixin():
             parameters = ",".join(["?"] * len(columns))
             values = [str(v) for v in kwargs.values()]
 
-            sql = "INSERT INTO {table} ({columns}) VALUES ({values})".format(
+            # TODO: Ignore pkey collision, may want to update instead
+            sql = "INSERT OR IGNORE INTO {table} ({columns}) VALUES ({values})".format(
                 table=self.table_name,
                 columns=", ".join(columns),
                 values=parameters
@@ -61,7 +68,7 @@ class DatabaseMixin():
             cur = self.conn.cursor()
             parameters = ",".join(["?"] * len(columns))
 
-            sql = "INSERT INTO {table} ({columns}) VALUES ({values})".format(
+            sql = "INSERT OR IGNORE INTO {table} ({columns}) VALUES ({values})".format(
                 table=self.table_name,
                 columns=", ".join(columns),
                 values=parameters

@@ -39,7 +39,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     def run(self, msg, matches):
         if matches.group(0) == "!stats":
             return self.stats_count(msg["to"]["id"])
-        if matches.group(0) == "!loadhistory":
+        if matches.group(0) == "!loadhistory" and self.bot.admin_check(msg):
             return self.load_history(msg["to"]["type"], msg["to"]["id"])
 
     def pre_process(self, msg):

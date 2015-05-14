@@ -21,7 +21,10 @@ class TelegramBot:
         if len(self.config) == 0:
             self.init_config()
 
-
+        try:
+            self.admins = int(self.config["admin_users"])
+        except:
+            self.admins = [int(admin) for admin in self.config["admin_users"]]
         self.plugin_manager = TelegramPluginManager(self)
         self.load_plugins()
 
@@ -42,6 +45,24 @@ class TelegramBot:
         ]
 
         self.config.write()
+
+    def admin_check(self, msg):
+        if msg["from"]["id"] == self.admins or msg["from"]["id"] in self.admins:
+            return True
+        else:
+            ptype, pid = self.get_peer_to_send(msg)
+            tgl.send_msg(ptype, pid, "Admin required for this feature")
+            return False
+
+    def get_peer_to_send(self, msg):
+        if msg["to"]["id"] == self.our_id:  # direct message
+            ptype = msg["from"]["type"]
+            pid = msg["from"]["id"]
+        else:  # chat room
+            ptype = msg["to"]["type"]
+            pid = msg["to"]["id"]
+
+        return ptype, pid
 
     # Plugin Management
     def load_plugins(self):
