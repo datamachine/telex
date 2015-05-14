@@ -41,12 +41,12 @@ class DatabaseMixin():
             cur = self.conn.cursor()
             columns = kwargs.keys()
             parameters = ",".join(["?"] * len(columns))
-            values = kwargs.values()
+            values = [str(v) for v in kwargs.values()]
 
             sql = "INSERT INTO {table} ({columns}) VALUES ({values})".format(
                 table=self.table_name,
                 columns=", ".join(columns),
-                values="', '".join(parameters)
+                values=parameters
             )
             #logging.debug(sql)
             cur.execute(sql, values)
