@@ -56,6 +56,24 @@ class DatabaseMixin():
         finally:
             cur.close()
 
+    def insert_many(self, columns, values):
+        try:
+            cur = self.conn.cursor()
+            parameters = ",".join(["?"] * len(columns))
+
+            sql = "INSERT INTO {table} ({columns}) VALUES ({values})".format(
+                table=self.table_name,
+                columns=", ".join(columns),
+                values=parameters
+            )
+            #logging.debug(sql)
+            cur.executemany(sql, values)
+            self.conn.commit()
+        except sqlite3.Error as e:
+            logging.error("Error inserting into {0}: {1}".format(self.table_name, e.args[0]))
+        finally:
+            cur.close()
+
     def select(self, **kwargs):
         try:
             cur = self.conn.cursor()

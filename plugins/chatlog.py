@@ -1,5 +1,8 @@
 import plugintypes
+import tgl
 from DatabaseMixin import DatabaseMixin, DbType
+from functools import partial
+
 
 
 
@@ -7,6 +10,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     """
     Tracks a chat log and provides statistics and queries
     """
+    HISTORY_QUERY_SIZE = 1000
+
     patterns = [
         "^!stats$",
         "^!loadhistory$"
@@ -34,6 +39,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     def run(self, msg, matches):
         if matches.group(0) == "!stats":
             return self.stats_count(msg["to"]["id"])
+        if matches.group(0) == "!loadhistory$":
+            return self.load_history(msg["to"]["id"])
 
     def pre_process(self, msg):
         self.insert(msg_id=msg["id"], timestamp=msg["date"],
@@ -42,12 +49,40 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                     chat_id=msg["to"]["id"], message=msg["text"])
         return msg
 
+    def history_cb(self, msg_count, chat_type, chat_id, success, msgs):
+        if success:
+            self.insert_history(msgs)
+            msg_count += len(msgs)
+            if len(msgs) == self.HISTORY_QUERY_SIZE:
+                tgl.get_history_ext(chat_type, chat_id, msg_count,
+                                    self.HISTORY_QUERY_SIZE,
+                                    partial(self.history_cb, msg_count, chat_type, chat_id))
+            else:
+                tgl.send_msg(chat_type, chat_id, "Loaded {0} messaged into the table".format(msg_count))
+
+    def load_history(self, chat_type, chat_id):
+        msg_count = 0
+        tgl.get_history_ext(chat_type, chat_id, msg_count,
+                            self.HISTORY_QUERY_SIZE,
+                            partial(self.history_cb, msg_count, chat_type, chat_id))
+
+    def insert_history(self, msgs):
+        values = [[msg["id"], msg["date"], msg["from"]["id"], msg["from"]["peer"]["username"],
+                   "{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"]["last_name"]),
+                   msg["to"]["id"], msg["text"]] for msg in msgs]
+        columns = ['msg_id', 'timestamp', 'uid', 'username', 'full_name', 'chat_id', 'message']
+
+        self.insert_many(columns, values)
+
     def stats_count(self, chat_id):
-        results = self.query("SELECT full_name, uid, COUNT(*) as count FROM {0} WHERE uid != {1} AND chat_id = {2} GROUP BY uid ORDER BY count DESC".format(self.table_name, self.bot.our_id, chat_id))
+        results = self.query("""SELECT full_name, uid, COUNT(*) as count FROM {0}
+                                WHERE uid != {1} AND chat_id = {2} GROUP BY uid
+                                ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id))
         text = "Channel Chat Statistics (count):\n"
         for result in results:
             text += "{name} ({uid}): {count}\n".format(name=result["full_name"],
                                                        uid=result["uid"],
                                                        count=result["count"])
-        print(text)
         return text
+
+
