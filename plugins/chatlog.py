@@ -43,8 +43,13 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
             return self.load_history(msg["to"]["type"], msg["to"]["id"])
 
     def pre_process(self, msg):
+        if "media" in msg: #TODO support media
+          return msg
+        username = ""
+        if "username" in msg["from"]["peer"]:
+            username = msg["from"]["peer"]["username"]
         self.insert(msg_id=msg["id"], timestamp=msg["date"],
-                    uid=msg["from"]["id"], username=msg["from"]["peer"]["username"],
+                    uid=msg["from"]["id"], username=username,
                     full_name="{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"]["last_name"]),
                     chat_id=msg["to"]["id"], message=msg["text"])
         return msg

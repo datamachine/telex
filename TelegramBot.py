@@ -38,6 +38,7 @@ class TelegramBot:
             "BTC",
             "Echo",
             "ChatLog",
+            "Media",
         ]
 
         self.config["admin_users"] = [
@@ -46,6 +47,7 @@ class TelegramBot:
 
         self.config.write()
 
+    # Util
     def admin_check(self, msg):
         if msg["from"]["id"] == self.admins or msg["from"]["id"] in self.admins:
             return True
@@ -63,6 +65,18 @@ class TelegramBot:
             pid = msg["to"]["id"]
 
         return ptype, pid
+
+    def download_to_file(self, url, ext):
+        try:
+            import urllib.request
+            import tempfile
+            filehdl, file_name = tempfile.mkstemp("." + ext)
+
+            urllib.request.urlretrieve(url, file_name)
+
+            return file_name
+        except:
+            return None
 
     # Plugin Management
     def load_plugins(self):
@@ -118,7 +132,7 @@ class TelegramBot:
         return "Set ID: " + str(self.our_id)
 
     def on_msg_receive(self, msg):
-        if msg["out"] and not self.binlog_done:
+        if msg["out"] or not self.binlog_done:
             return
 
         if msg["to"]["id"] == self.our_id:  # direct message
@@ -138,7 +152,7 @@ class TelegramBot:
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
             for pattern in plugin_info.plugin_object.patterns:
-                if plugin_info.plugin_object.is_activated:
+                if plugin_info.plugin_object.is_activated and "media" not in msg:
                     matches = re.search(pattern, msg["text"])
                     if matches is not None:
                         reply = plugin_info.plugin_object.run(msg, matches)
