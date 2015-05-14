@@ -9,7 +9,7 @@ class DatabaseMixin():
         if not hasattr(self, "schema"):
             raise DatabaseError("Missing Schema in plugin {0}".format(self.table_name))
 
-        self.conn = sqlite3.connect('data.db')
+        self.conn = sqlite3.connect('data/data.db')
         self.conn.row_factory = DatabaseMixin.dict_factory
         self.create_schema()
 
