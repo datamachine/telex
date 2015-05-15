@@ -59,17 +59,17 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
             self.insert_history(msgs)
             msg_count += len(msgs)
             if len(msgs) == self.HISTORY_QUERY_SIZE:
-                tgl.get_history_ext(chat_type, chat_id, msg_count,
-                                    self.HISTORY_QUERY_SIZE,
-                                    partial(self.history_cb, msg_count, chat_type, chat_id))
+                tgl.get_history(chat_type, chat_id, msg_count,
+                                self.HISTORY_QUERY_SIZE,
+                                partial(self.history_cb, msg_count, chat_type, chat_id))
             else:
                 tgl.send_msg(chat_type, chat_id, "Loaded {0} messaged into the table".format(msg_count))
 
     def load_history(self, chat_type, chat_id):
         msg_count = 0
-        tgl.get_history_ext(chat_type, chat_id, msg_count,
-                            self.HISTORY_QUERY_SIZE,
-                            partial(self.history_cb, msg_count, chat_type, chat_id))
+        tgl.get_history(chat_type, chat_id, msg_count,
+                        self.HISTORY_QUERY_SIZE,
+                        partial(self.history_cb, msg_count, chat_type, chat_id))
 
     def insert_history(self, msgs):
         # TODO Support Media Msgs
@@ -86,9 +86,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                                 ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id))
         text = "Channel Chat Statistics (count):\n"
         for result in results:
-            text += "{name} ({uid}): {count}\n".format(name=result["full_name"],
-                                                       uid=result["uid"],
-                                                       count=result["count"])
+            text += "{name}: {count}\n".format(name=result["full_name"],
+                                               count=result["count"])
         return text
 
 
