@@ -1,0 +1,10 @@
+[Core]
+Name = Whiskey
+Module = whiskey
+
+[Documentation]
+Author = Phillip Lopo
+Version = 1.0
+Website = https://github.com/datamachine/telegram-pybot
+Description = Pass the whiskey.
+
