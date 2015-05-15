@@ -4,8 +4,6 @@ from DatabaseMixin import DatabaseMixin, DbType
 from functools import partial
 
 
-
-
 class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     """
     Tracks a chat log and provides statistics and queries
@@ -14,11 +12,13 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
     patterns = [
         "^!stats$",
+        "^!stats_pattern (.*)",
         "^!loadhistory$"
     ]
 
     usage = [
         "!stats: return chat stats",
+        "!stats_pattern %somepattern%: returns stats filtered by SQL LIKE style pattern",
     ]
 
     schema = {
@@ -39,6 +39,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     def run(self, msg, matches):
         if matches.group(0) == "!stats":
             return self.stats_count(msg["to"]["id"])
+        if matches.group(0).startswith("!stats_pattern"):
+            return self.stats_count(msg["to"]["id"], matches.group(1))
         if matches.group(0) == "!loadhistory" and self.bot.admin_check(msg):
             return self.load_history(msg["to"]["type"], msg["to"]["id"])
 
@@ -80,10 +82,23 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
         self.insert_many(columns, values)
 
-    def stats_count(self, chat_id):
-        results = self.query("""SELECT full_name, uid, COUNT(*) as count FROM {0}
-                                WHERE uid != {1} AND chat_id = {2} GROUP BY uid
-                                ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id))
+    def stats_count(self, chat_id, pattern=None):
+        pattern_query = ""
+        if pattern is not None:
+            pattern_query = " AND message LIKE ? "
+
+        query = """SELECT full_name, uid, COUNT(*) as count FROM {0}
+                   WHERE uid != {1} AND chat_id = {2} {3} GROUP BY uid
+                   ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id, pattern_query)
+
+        if(pattern is not None):
+            results = self.query(query, parameters=(pattern,))
+        else:
+            results = self.query(query)
+
+        if results is None or len(results) == 0:
+           return "No stats match!"
+
         text = "Channel Chat Statistics (count):\n"
         for result in results:
             text += "{name}: {count}\n".format(name=result["full_name"],
