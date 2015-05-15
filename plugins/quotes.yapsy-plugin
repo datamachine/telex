@@ -1,0 +1,9 @@
+[Core]
+Name = Quotes
+Module = quotes
+
+[Documentation]
+Author = Vincent Castellano
+Version = 0.1
+Website = https://github.com/datamachine/telegram-pybot
+Description = Store and retrieve quotes from a database.
