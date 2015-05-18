@@ -11,7 +11,7 @@ class WeatherPlugin(plugintypes.TelegramPlugin):
     """
 
     patterns = [
-        "^!weather (.*)"
+        "^!weather? ([0-9]{5})"
     ]
 
     usage = [
@@ -27,8 +27,10 @@ class WeatherPlugin(plugintypes.TelegramPlugin):
 
 
     def run(self, msg, matches):
-        with self.owm.weather_data(zipcode=91941) as w:
+        w = self.owm.weather_data(zipcode=matches.group(1))
+        if w:
             report = "{} ({}) {}{}\n{}".format(w.name, w.country, w.temp, w.unit_symbol, w.description)
             return report
-        return usage[0]
+        return "Error getting weather data"
+
 
