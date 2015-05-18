@@ -8,7 +8,8 @@ class TelegramPluginManager(ConfigurablePluginManager):
     def __init__(self, bot):
         self.config = configparser.ConfigParser()
         super().__init__(configparser_instance = self.config, 
-                         config_change_trigger = lambda :self.save_config())
+                         config_change_trigger = lambda :self.save_config(),
+                         directories_list = ["plugins"] )
 
         self.bot = bot
 
