@@ -17,6 +17,11 @@ OWM_icon_emoji_map = {
     "50d": u'\U0001F301'
 }
 
+def __get_emoji(icon):
+    if icon in OWM_icon_emoji_map.keys():
+        return OWM_icon_emoji_map[icon]
+    return u'\U00002610'
+
 class WeatherPlugin(plugintypes.TelegramPlugin):
     """
     Weather
@@ -45,7 +50,8 @@ class WeatherPlugin(plugintypes.TelegramPlugin):
     def run(self, msg, matches):
         w = self.owm.weather_data(zipcode=matches.group(1))
         if w:
-            report = "{} ({}) {}{}\n{}".format(w.name, w.country, w.temp, w.unit_symbol, w.description)
+            emoji = __get_emoji(w.icon)
+            report = "{} ({}) {}{}\n{} {}".format(w.name, w.country, w.temp, w.unit_symbol, w.description, emoji)
             return report
         return "Error getting weather data"
 

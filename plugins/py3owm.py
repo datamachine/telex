@@ -36,6 +36,10 @@ class Weather:
     @property
     def description(self):
         return self.data["weather"][0]["description"]
+
+    @property
+    def icon(self):
+        return self.data["weather"][0]["icon"]
         
         
 class OpenWeatherMap:
