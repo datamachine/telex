@@ -15,7 +15,7 @@ class WeatherPlugin(plugintypes.TelegramPlugin):
         "!weather <zip code>|<city>"
     ]
 
-    def __init__(self):;
+    def __init__(self):
         super().__init__()
 
         if not self.has_option("api key"):
