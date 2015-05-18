@@ -119,7 +119,7 @@ class DatabaseError(Exception):
 
 
 class DbType(Enum):
-    Integer = "INT"
+    Integer = "INTEGER"
     Real = Float = Double = "REAL"
     String = "TEXT"
     DateTime = "DATETIME"

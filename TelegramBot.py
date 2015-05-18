@@ -32,16 +32,6 @@ class TelegramBot:
 
     # Config Management
     def init_config(self):
-        self.config["enabled_plugins"] = [
-            "Help",
-            "Plugins",
-            "Calculator",
-            "BTC",
-            "Echo",
-            "ChatLog",
-            "Media",
-        ]
-
         self.config["admin_users"] = [
             self.our_id,
         ]
