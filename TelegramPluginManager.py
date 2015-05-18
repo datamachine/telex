@@ -27,6 +27,8 @@ class TelegramPluginManager(ConfigurablePluginManager):
         if plugin_object:
             plugin_object.set_bot(self.bot)
             plugin_object.set_plugin_manager(self)
+            self.name = None
+            self.category_name = None
             return plugin_object
         
         return None
