@@ -97,11 +97,14 @@ class DatabaseMixin():
         finally:
             cur.close()
 
-    def query(self, sql):
+    def query(self, sql, parameters=None):
         try:
             cur = self.conn.cursor()
             #logging.debug(sql)
-            cur.execute(sql)
+            if parameters:
+                cur.execute(sql, parameters)
+            else:
+                cur.execute(sql)
             return cur.fetchall()
         except sqlite3.Error as e:
             logging.error("Error selecting table {0}: {1}".format(self.table_name, e.args[0]))
@@ -116,7 +119,7 @@ class DatabaseError(Exception):
 
 
 class DbType(Enum):
-    Integer = "INT"
+    Integer = "INTEGER"
     Real = Float = Double = "REAL"
     String = "TEXT"
     DateTime = "DATETIME"

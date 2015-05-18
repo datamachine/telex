@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
 data/data.db
+.idea
 .virtualenv
 log.txt
