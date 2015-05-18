@@ -21,9 +21,13 @@ class WeatherPlugin(plugintypes.TelegramPlugin):
     def activate_plugin(self):
         if not self.has_option("api key"):
             self.write_option("api key", "")
+        if not self.has_option("units"):
+            self.write_option("units", "metric")
         
         api_key = self.read_option("api key")
-        self.owm = OpenWeatherMap(api_key, "imperial")
+        units = self.read_option("units")
+
+        self.owm = OpenWeatherMap(api_key, units)
 
 
     def run(self, msg, matches):
