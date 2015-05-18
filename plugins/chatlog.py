@@ -13,12 +13,15 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     patterns = [
         "^!stats$",
         "^!stats_pattern (.*)",
-        "^!loadhistory$"
+        "^!loadhistory$",
+        "^!seen (([0-9]+)|@(.*)|(.*))",
     ]
 
     usage = [
         "!stats: return chat stats",
         "!stats_pattern %somepattern%: returns stats filtered by SQL LIKE style pattern",
+        "!seen (uid|@username|full name): Find the last time someone said something in the current chat",
+        "!loadhistory: (Admin) load chatlog database from telegram history.",
     ]
 
     schema = {
@@ -37,12 +40,21 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         DatabaseMixin.__init__(self)
 
     def run(self, msg, matches):
+        chat_id = msg["to"]["id"]
         if matches.group(0) == "!stats":
-            return self.stats_count(msg["to"]["id"])
+            return self.stats_count(chat_id)
         if matches.group(0).startswith("!stats_pattern"):
-            return self.stats_count(msg["to"]["id"], matches.group(1))
+            return self.stats_count(chat_id, matches.group(1))
         if matches.group(0) == "!loadhistory" and self.bot.admin_check(msg):
             return self.load_history(msg["to"]["type"], msg["to"]["id"])
+
+        if matches.group(0).startswith("!seen"):
+            if matches.group(2) is not None:
+                return self.seen_by_id(chat_id, matches.group(2))
+            elif matches.group(3) is not None:
+                return self.seen_by_username(chat_id, matches.group(3))
+            else:
+                return self.seen_by_fullname(chat_id, matches.group(4))
 
     def pre_process(self, msg):
         if "media" in msg: #TODO support media
@@ -106,3 +118,35 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         return text
 
 
+    def seen_by_username(self, chat_id, username):
+        query = """SELECT * FROM {0}
+                   WHERE username LIKE ? AND chat_id == {1}
+                   ORDER BY timestamp DESC LIMIT 1 COLLATE NOCASE""".format(self.table_name, chat_id)
+
+        results = self.query(query, parameters=(username,))
+
+        return self.print_scene(results)
+
+    def seen_by_fullname(self, chat_id, name):
+        query = """SELECT * FROM {0}
+                   WHERE full_name LIKE ? AND chat_id == {1}
+                   ORDER BY timestamp DESC LIMIT 1 COLLATE NOCASE""".format(self.table_name, chat_id)
+
+        results = self.query(query, parameters=(name,))
+
+        return self.print_scene(results)
+
+    def seen_by_id(self, chat_id, uid):
+        query = """SELECT * FROM {0}
+                   WHERE uid == ? AND chat_id == {1}
+                   ORDER BY timestamp DESC LIMIT 1""".format(self.table_name, chat_id)
+
+        results = self.query(query, parameters=(uid,))
+
+        return self.print_scene(results)
+
+    def print_scene(self, results):
+        if len(results) == 0:
+            return "Cannot find that user in the history"
+        else:
+            return "{full_name} last seen at {timestamp} saying:\n{msg}".format(full_name=results[0]["full_name"], timestamp=results[0]["timestamp"], msg=results[0]["message"])
