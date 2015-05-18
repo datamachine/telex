@@ -29,7 +29,7 @@ class TelegramPlugin(IPlugin):
     def has_option(self, option):
         return self.plugin_manager.hasOptionFromPlugin(self.category_name, self.name, option)
 
-    def activated(self):
+    def activate_plugin(self):
         pass
 
     def run(self, msg, matches):
