@@ -26,7 +26,7 @@ class HelpPlugin(plugintypes.TelegramPlugin):
 
     def plugin_help(self, name):
         text = None
-        plugin = self.bot.get_plugin(name)
+        plugin = self.plugin_manager.getPluginByName(name)
 
         if plugin is not None:
             if plugin.plugin_object.is_activated:
@@ -43,7 +43,7 @@ class HelpPlugin(plugintypes.TelegramPlugin):
     def telegram_help(self):
         text = "Plugin list: \n\n"
 
-        for plugin in self.bot.get_plugins():
+        for plugin in self.plugin_manager.getAllPlugins():
             if plugin.plugin_object.is_activated:
                 text += "{0}: {1}\n".format(plugin.name, plugin.description)
 
