@@ -10,9 +10,9 @@ class Weather:
 
     @property
     def unit_symbol(self):
-        if self.units is "imperial":
+        if self.units == "imperial":
             return "F°"
-        elif self.units is "metric":
+        elif self.units == "metric":
             return "C°"
         else:
             return "K"
