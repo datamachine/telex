@@ -26,11 +26,16 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         if matches.group(0) == "!plugins":
             return self.list_plugins()
 
+        plugin_name = matches.group(2)
+
         if matches.group(1) == "enable":
-            return self.bot.enable_plugin(matches.group(2))
+            if self.plugin_manager.activatePluginByName(plugin_name)
+                return "Plugin {} enabled".format(plugin_name)
+            else
+                return "Error loading plugin {}".format(plugin_name)
 
         if matches.group(1) == "disable":
-            return self.bot.disable_plugin(matches.group(2))
+            return self.bot.disable_plugin(plugin_name)
 
         if matches.group(1) == "reload":
             self.bot.load_plugins()
