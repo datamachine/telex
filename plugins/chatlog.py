@@ -20,6 +20,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     usage = [
         "!stats: return chat stats",
         "!stats_pattern %somepattern%: returns stats filtered by SQL LIKE style pattern",
+        "!seen (uid|@username|full name): Find the last time someone said something in the current chat",
+        "!loadhistory: (Admin) load chatlog database from telegram history.",
     ]
 
     schema = {
