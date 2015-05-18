@@ -24,7 +24,10 @@ class TelegramPlugin(IPlugin):
         self.plugin_manager.registerOptionFromPlugin(self.category_name, self.name, option, value)
 
     def read_option(self, option):
-        self.plugin_manager.readOptionFromPlugin(self.category_name, self.name, option)
+        return self.plugin_manager.readOptionFromPlugin(self.category_name, self.name, option)
+
+    def has_option(self, option):
+        return self.plugin_manager.hasOptionFromPlugin(self.category_name, self.name, option)
         
 
     def run(self, msg, matches):
