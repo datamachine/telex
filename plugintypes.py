@@ -28,7 +28,9 @@ class TelegramPlugin(IPlugin):
 
     def has_option(self, option):
         return self.plugin_manager.hasOptionFromPlugin(self.category_name, self.name, option)
-        
+
+    def activate(self):
+        pass
 
     def run(self, msg, matches):
         raise NotImplementedError

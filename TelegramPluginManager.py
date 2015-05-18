@@ -53,6 +53,7 @@ class TelegramPluginManager(ConfigurablePluginManager):
             plugin_object.set_plugin_manager(self)
             plugin_object.set_name(plugin_name)
             plugin_object.set_category_name(category_name)
+            plugin_object.activate()
             return plugin_object
         
         return None
