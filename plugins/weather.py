@@ -27,5 +27,8 @@ class WeatherPlugin(plugintypes.TelegramPlugin):
 
 
     def run(self, msg, matches):
-        return self.owm.weather(zip="91941")
+        w = self.owm.weather_data(zipcode=91941)
+        report = "{} ({}) {}{}".format(w.name, w.country, w.temp, w.unit_symbol)
+        print(report)
+        return "Nothing to report"
 
