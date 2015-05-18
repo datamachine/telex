@@ -26,7 +26,7 @@ class NflPlugin(plugintypes.TelegramPlugin):
         if matches.group(0).startswith("!top"):
             return stats_top(matches.group(1), matches.group(2), matches.group(3), matches.group(5))
 
-    def stats_top(self, count, role, year, count, week):
+    def stats_top(self, count, role, year, week):
         if role not in roles:
             return "Role not valid, must be one of :\n{0}".formate(",".join(roles))
 
@@ -48,7 +48,7 @@ class NflPlugin(plugintypes.TelegramPlugin):
 
         text = "Top {role} leaders:\n".format(role=role)
         for p in get_role(players, role, count):
-            text += "{player} {carries} carries for {yards} yds and {tds} TDs"
+            text += "{player} {carries} carries for {yards} yds and {tds} TDs" \
                     "".format(player=p, carries=p.rushing_att, 
                               yards=p.rushing_yds, tds=p.rushing_tds)
 
