@@ -1,0 +1,9 @@
+[Core]
+Name = NFL
+Module = nfl
+
+[Documentation]
+Author = Vincent Castellano
+Version = 0.1
+Website = https://github.com/datamachine/telegram-pybot
+Description = Print and query NFL stats using the nflgame library
