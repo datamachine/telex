@@ -29,10 +29,10 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         'quote': DbType.String,
     }
 
-    def __init__(self, bot):
-        super().__init__(bot)
+    def __init__(self):
+        super().__init__()
         DatabaseMixin.__init__(self)
-
+        
     def run(self, msg, matches):
         if matches.group(0) == "!quote":
             return self.get_random_quote(msg["to"]["id"])

@@ -1,0 +1,10 @@
+[Core]
+Name = Weather
+Module = weather
+
+[Documentation]
+Author = Phillip Lopo
+Version = 1.0
+Website = https://github.com/datamachine/telegram-pybot
+Description = Display the current weather conditions
+

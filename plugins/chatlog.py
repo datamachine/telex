@@ -32,8 +32,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     }
     primary_key = 'msg_id'
 
-    def __init__(self, bot):
-        super().__init__(bot)
+    def __init__(self):
+        super().__init__()
         DatabaseMixin.__init__(self)
 
     def run(self, msg, matches):

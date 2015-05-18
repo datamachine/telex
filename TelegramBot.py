@@ -25,8 +25,9 @@ class TelegramBot:
             self.admins = int(self.config["admin_users"])
         except:
             self.admins = [int(admin) for admin in self.config["admin_users"]]
+
         self.plugin_manager = TelegramPluginManager(self)
-        self.load_plugins()
+        self.plugin_manager.collectPlugins()
 
 
     # Config Management
@@ -77,48 +78,6 @@ class TelegramBot:
             return file_name
         except:
             return None
-
-    # Plugin Management
-    def load_plugins(self):
-        # Tell it the default place(s) where to find plugins
-        self.plugin_manager.setPluginPlaces(["./plugins/"])
-        # Load all plugins
-        self.plugin_manager.collectPlugins()
-
-        # Activate all loaded plugins
-        for plugin_info in self.plugin_manager.getAllPlugins():
-            plugin_info.bot = self
-            if plugin_info.name in self.config["enabled_plugins"]:
-                self.plugin_manager.activatePluginByName(plugin_info.name)
-            else:
-                self.plugin_manager.deactivatePluginByName(plugin_info.name)
-
-    def get_plugins(self):
-        return self.plugin_manager.getAllPlugins()
-
-    def get_plugin(self, name):
-        return self.plugin_manager.getPluginByName(name)
-
-    def enable_plugin(self, name):
-        plugin = self.plugin_manager.activatePluginByName(name)
-        if plugin is None:
-            return "Plugin {0} does not exist".format(name)
-        else:
-            self.config["enabled_plugins"].append(name)
-            self.config.write()
-            return "Plugin {0} enabled".format(name)
-
-    def disable_plugin(self, name):
-        plugin = self.plugin_manager.deactivatePluginByName(name)
-        if plugin is None:
-            return "Plugin {0} does not exist".format(name)
-        else:
-            try:
-                self.config["enabled_plugins"].remove(name)
-            except ValueError:
-                pass  # Wasn't in the config file.
-            self.config.write()
-            return "Plugin {0} disabled".format(name)
 
     # Callbacks
     def on_binlog_replay_end(self):

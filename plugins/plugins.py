@@ -27,17 +27,23 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return self.list_plugins()
 
         if matches.group(1) == "enable":
-            return self.bot.enable_plugin(matches.group(2))
+            if self.plugin_manager.activatePluginByName(matches.group(2)):
+                return "Plugin {} enabled".format(matches.group(2))
+            else:
+                return "Error loading plugin {}".format(matches.group(2))
 
         if matches.group(1) == "disable":
-            return self.bot.disable_plugin(matches.group(2))
+            if self.plugin_manager.activatePluginByName(matches.group(2)):
+                return "Plugin {} disabled".format(matches.group(2))
+            else:
+                return "Error disabling plugin {}".format(matches.group(2))
 
         if matches.group(1) == "reload":
-            self.bot.load_plugins()
+            self.plugin_manager.collectPlugins()
 
     def list_plugins(self):
         text = ""
-        for plugin in self.bot.get_plugins():
+        for plugin in self.plugin_manager.getAllPlugins():
             text += "{0}: ({1})\n".format(plugin.name,
                                           "(Enabled)" if plugin.plugin_object.is_activated else "(Disabled)")
 
