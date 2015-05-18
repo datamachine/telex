@@ -20,3 +20,13 @@ class TelegramPluginManager(ConfigurablePluginManager):
             return True
         return False
 
+    def activatePluginByName(self, plugin_name, category_name="Default", save_state=True):
+        plugin_object = super().activatePluginByName(plugin_name, category_name, save_state)
+
+        if plugin_object:
+            plugin_object.set_bot(self.bot)
+            return plugin_object
+        
+        return None
+    
+        
