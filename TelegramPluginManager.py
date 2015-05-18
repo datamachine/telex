@@ -4,7 +4,7 @@ import configparser
 
 PLUGIN_CONFIG_NAME="plugins.conf"
 
-def __get_section_name(self, category_name, plugin_name):
+def __get_section_name(category_name, plugin_name):
     if category_name and category_name != "Default":
         return "{}: {}".format(category_name, plugin_name)
     return plugin_name
