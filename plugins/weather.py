@@ -1,4 +1,7 @@
 import plugintypes
+import sys
+
+sys.path.append('./plugins')
 
 from py3owm import OpenWeatherMap
 
