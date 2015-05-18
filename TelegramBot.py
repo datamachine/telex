@@ -26,7 +26,7 @@ class TelegramBot:
         except:
             self.admins = [int(admin) for admin in self.config["admin_users"]]
         self.plugin_manager = TelegramPluginManager(self)
-        self.load_plugins()
+#        self.load_plugins()
 
 
     # Config Management
