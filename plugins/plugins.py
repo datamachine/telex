@@ -76,7 +76,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def install_plugin(self, matches):
         plugin_name = matches.group(2)
         if plugin_name in PLUGIN_LINKS.keys():
-            args = [GIT_BIN, "clone", PLUGIN_DIRECTORY[plugin_name]]
+            args = [GIT_BIN, "clone", PLUGIN_LINKS[plugin_name]]
             p = subprocess.Popen(args, cwd=REPO_DIR)
         return ""
 
