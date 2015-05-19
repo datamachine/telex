@@ -45,6 +45,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def activate_plugin(self):
         if not os.path.exists(PLUGIN_REPOS_DIR):
             os.makedirs(PLUGIN_REPOS_DIR)
+        self.plugin_manager.updatePluginPlaces([PLUGIN_REPOS_DIR])
 
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
