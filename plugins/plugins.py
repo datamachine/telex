@@ -66,17 +66,16 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         
 
     def enable_plugin(self, matches):
-
         if self.plugin_manager.activatePluginByName(matches.group(2)):
-            return "Plugin {} enabled".format(matches.group(2))
+            return "Enabled plugin: {}".format(matches.group(2))
         else:
-            return "Error loading plugin {}".format(matches.group(2))
+            return "Error loading plugin: {}".format(matches.group(2))
 
     def disable_plugin(self, matches):
         if self.plugin_manager.activatePluginByName(matches.group(2)):
-            return "Plugin {} disabled".format(matches.group(2))
+            return "Disabled plugin: {}".format(matches.group(2))
         else:
-            return "Error disabling plugin {}".format(matches.group(2))
+            return "Error disabling plugin: {}".format(matches.group(2))
 
     def __clone_repository(self, url):
             args = [GIT_BIN, "clone", url]
