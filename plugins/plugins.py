@@ -15,7 +15,8 @@ database for local cache.
 """
 
 PLUGIN_LINKS={ "Whiskey": "https://github.com/xlopo/tg-pybot-whiskey" }
-REPO_DIR="plugins.repos"
+PLUGIN_REPOS_DIR="plugins.repos"
+PLUGINS_DIR="plugins"
 GIT_BIN="/usr/bin/git"
 
 
@@ -42,8 +43,8 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     ]
 
     def activate_plugin(self):
-        if not os.path.exists(REPO_DIR):
-            os.makedirs(REPO_DIR)
+        if not os.path.exists(PLUGIN_REPOS_DIR):
+            os.makedirs(PLUGIN_REPOS_DIR)
 
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
@@ -77,15 +78,13 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         plugin_name = matches.group(2)
         if plugin_name in PLUGIN_LINKS.keys():
             args = [GIT_BIN, "clone", PLUGIN_LINKS[plugin_name]]
-            p = subprocess.Popen(args, cwd=REPO_DIR)
+            p = subprocess.Popen(args, cwd=PLUGIN_REPOS_DIR)
+            # TODO: make an async callback to continue after procress is complete
             p.wait()
             self.reload_plugins()
         return ""
 
     def reload_plugins(self):
-        repo_paths = os.listdir(REPO_DIR)
-        plugin_paths = [os.path.join(REPO_DIR, repo) for repo in repo_paths]
-        self.plugin_manager.getPluginLocator().updatePluginPlaces(plugin_paths)
         self.plugin_manager.collectPlugins()
         return "Plugins reloaded"
 
