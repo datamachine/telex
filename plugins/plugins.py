@@ -78,7 +78,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             p = subprocess.Popen(args, cwd=REPO_DIR)
         return ""
 
-    def reload_plugins(self)
+    def reload_plugins(self):
         self.plugin_manager.collectPlugins()
         return "Plugins reloaded"
 
