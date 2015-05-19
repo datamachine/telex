@@ -45,7 +45,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def activate_plugin(self):
         if not os.path.exists(PLUGIN_REPOS_DIR):
             os.makedirs(PLUGIN_REPOS_DIR)
-        self.plugin_manager.updatePluginPlaces([PLUGIN_REPOS_DIR])
+        if PLUGIN_REPOS_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
+            self.plugin_manager.updatePluginPlaces([PLUGIN_REPOS_DIR])
+            self.reload_plugins()
 
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
@@ -72,7 +74,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return "Error loading plugin: {}".format(matches.group(2))
 
     def disable_plugin(self, matches):
-        if self.plugin_manager.activatePluginByName(matches.group(2)):
+        if self.plugin_manager.deactivatePluginByName(matches.group(2)):
             return "Disabled plugin: {}".format(matches.group(2))
         else:
             return "Error disabling plugin: {}".format(matches.group(2))
