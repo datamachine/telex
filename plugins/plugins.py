@@ -1,4 +1,20 @@
 import plugintypes
+import json
+import subprocess
+
+
+
+"""
+Installable plugins are currently hardcoded here for early
+development of the installation process. They will be centralized
+online at a later date.
+
+Plugin data will be downloaded in JSON format and inserted to a sqlite
+database for local cache.
+"""
+
+PLUGIN_LINKS={ "Whiskey": "https://github.com/xlopo/tg-pybot-whiskey" }
+REPO_DIR="plugins.repos"
 
 
 class PluginsPlugin(plugintypes.TelegramPlugin):
@@ -9,6 +25,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "^!plugins$",
         "^!plugins? (enable) ([\w_.-]+)$",
         "^!plugins? (disable) ([\w_.-]+)$",
+        "^!plugins? (install) ([\w_.-]+)$",
         # "^!plugins? (enable) ([\w_.-]+) (chat)",
         # "^!plugins? (disable) ([\w_.-]+) (chat)",
         "^!plugins? (reload)$"
@@ -22,6 +39,10 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "!plugins reload: reloads all plugins."
     ]
 
+    def activate_plugin(self):
+        if not os.path.exists(REPO_DIR):
+            os.makedirs(REPO_DIR)
+
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
             return self.list_plugins()
@@ -31,6 +52,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
         if matches.group(1) == "disable":
             return self.disable_plugin(matches)
+
+        if matches.group(1) == "install":
+            return self.install_plugin(matches)
 
         if matches.group(1) == "reload":
             return self.reload_plugins()
@@ -46,6 +70,13 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return "Plugin {} disabled".format(matches.group(2))
         else:
             return "Error disabling plugin {}".format(matches.group(2))
+
+    def install_plugin(self, matches):
+        plugin_name = matches.group(2)
+        if plugin_name in PLUGIN_LINKS.keys():
+            args = [GIT, "clone", PLUGIN_DIRECTORY[plugin_name]]
+            p = subprocess.Popen(args, cwd=REPO_DIR)
+        return ""
 
     def reload_plugins(self)
         self.plugin_manager.collectPlugins()
