@@ -3,7 +3,7 @@ import json
 import subprocess
 import os
 
-
+from urllib.parse import urlparse
 
 """
 Installable plugins are currently hardcoded here for early
@@ -63,7 +63,10 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         if matches.group(1) == "reload":
             return self.reload_plugins()
 
+        
+
     def enable_plugin(self, matches):
+
         if self.plugin_manager.activatePluginByName(matches.group(2)):
             return "Plugin {} enabled".format(matches.group(2))
         else:
@@ -75,15 +78,28 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         else:
             return "Error disabling plugin {}".format(matches.group(2))
 
-    def install_plugin(self, matches):
-        plugin_name = matches.group(2)
-        if plugin_name in PLUGIN_LINKS.keys():
-            args = [GIT_BIN, "clone", PLUGIN_LINKS[plugin_name]]
+    def __clone_repository(self, url):
+            args = [GIT_BIN, "clone", url]
             p = subprocess.Popen(args, cwd=PLUGIN_REPOS_DIR)
-            # TODO: make an async callback to continue after procress is complete
-            p.wait()
-            self.reload_plugins()
-        return ""
+            return p.wait()
+
+    def install_plugin(self, matches):
+        plugin = matches.group(2)
+        urldata = urlencode(matches.group(2))
+
+        url = None
+        if urldata.schema in [ "http", "https" ]:
+            url = plugin
+        elif plugin in PLUGIN_LINKS.keys():
+            url = PLUGIN_LINKS[plugin]
+
+        if not url:
+            return "Invalid plugin or url: {}".format(plugin)
+
+        if not self.__clone_repository(url):
+            return "Error installing plugin: {}".format(plugin)
+
+        return "Successfully installed plugin: {}".format(plugin)
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
