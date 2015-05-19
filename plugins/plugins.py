@@ -85,7 +85,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
     def install_plugin(self, matches):
         plugin = matches.group(2)
-        urldata = urlencode(matches.group(2))
+        urldata = urlparse(matches.group(2))
 
         url = None
         if urldata.schema in [ "http", "https" ]:
