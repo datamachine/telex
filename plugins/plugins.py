@@ -28,7 +28,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "^!plugins$",
         "^!plugins? (enable) ([\w_.-]+)$",
         "^!plugins? (disable) ([\w_.-]+)$",
-        "^!plugins? (install) ([\w_.-]+)$",
+        "^!plugins? (install) (.*)$",
         # "^!plugins? (enable) ([\w_.-]+) (chat)",
         # "^!plugins? (disable) ([\w_.-]+) (chat)",
         "^!plugins? (reload)$"
@@ -96,7 +96,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
 
-        if not self.__clone_repository(url):
+        if self.__clone_repository(url) != 0:
             return "Error installing plugin: {}".format(plugin)
 
         self.reload_plugins()
