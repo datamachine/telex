@@ -135,6 +135,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             shutil.move(plugin_dir, new_dir)
 
             return "Uninstalled plugin: {}".format(plugin_name)
+        return "Unable to find plugin: {}".format(plugin_name)
                     
                 
             
