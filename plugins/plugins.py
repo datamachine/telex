@@ -2,6 +2,7 @@ import plugintypes
 import json
 import subprocess
 import os
+import uuid
 
 from urllib.parse import urlparse
 
@@ -15,7 +16,8 @@ database for local cache.
 """
 
 PLUGIN_LINKS={ "Whiskey": "https://github.com/xlopo/tg-pybot-whiskey" }
-PLUGIN_REPOS_DIR="plugins.repos"
+PLUGINS_REPOS_DIR="plugins.repos"
+PLUGINS_TRASH_DIR="plugins.trash"
 PLUGINS_DIR="plugins"
 GIT_BIN="/usr/bin/git"
 
@@ -44,10 +46,10 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     ]
 
     def activate_plugin(self):
-        if not os.path.exists(PLUGIN_REPOS_DIR):
-            os.makedirs(PLUGIN_REPOS_DIR)
-        if PLUGIN_REPOS_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
-            self.plugin_manager.updatePluginPlaces([PLUGIN_REPOS_DIR])
+        if not os.path.exists(PLUGINS_REPOS_DIR):
+            os.makedirs(PLUGINS_REPOS_DIR)
+        if PLUGINS_REPOS_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
+            self.plugin_manager.updatePluginPlaces([PLUGINS_REPOS_DIR])
             self.reload_plugins()
 
     def run(self, msg, matches):
@@ -85,7 +87,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
     def __clone_repository(self, url):
             args = [GIT_BIN, "clone", url]
-            p = subprocess.Popen(args, cwd=PLUGIN_REPOS_DIR)
+            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR)
             return p.wait()
 
     def install_plugin(self, matches):
@@ -110,12 +112,27 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
     def uninstall_plugin(self, matches):
         plugin_name = matches.group(2)
-        to_delete = []
         for plugin in self.plugin_manager.getAllPlugins():
-            if plugin.name == plugin_name:
-                to_delete.append(plugin_name)
-        for plugin in to_delete:
-            print("{}: {}".format(plugin.name, plugin.path))
+            plugin_path = list[os.path.split(plugin.path)]
+            plugin_dir = None
+            while plugin_path:
+                if plugin_path[0] == PLUGINS_REPOS_DIR:
+                    del plugin_path[0]
+                    if not plugin_path:
+                        break
+                    plugin_dir = plugin_path[0]
+                    break
+
+            if not plugin_dir: 
+                return "Error uninstalling plugin: {}.\nCannot locae plugin directory.".format(plugin_name)
+
+            self.deactivatePluginByName(plugin_name)
+            old_dir = os.path.join(PLUGINS_REPOS_DIR, plugin_dir)
+            new_dir = os.path.join(PLUGINS_TRASH_DIR, uuid.uuid4())
+            print("moving {} {}".format(old_dir, new_dir))
+                    
+                
+            
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
