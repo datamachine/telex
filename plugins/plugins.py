@@ -3,6 +3,7 @@ import json
 import subprocess
 import os
 import uuid
+import shutil
 
 from urllib.parse import urlparse
 
@@ -113,23 +114,27 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def uninstall_plugin(self, matches):
         plugin_name = matches.group(2)
         for plugin in self.plugin_manager.getAllPlugins():
-            plugin_path = list[os.path.split(plugin.path)]
-            plugin_dir = None
-            while plugin_path:
-                if plugin_path[0] == PLUGINS_REPOS_DIR:
-                    del plugin_path[0]
-                    if not plugin_path:
-                        break
-                    plugin_dir = plugin_path[0]
-                    break
+            if plugin.name != plugin_name:
+                continue
 
-            if not plugin_dir: 
+            plugin_dir = os.path.relpath(os.path.dirname(plugin.path))
+            if not plugin_dir.startswith(PLUGINS_REPOS_DIR):
                 return "Error uninstalling plugin: {}.\nCannot locae plugin directory.".format(plugin_name)
 
-            self.deactivatePluginByName(plugin_name)
-            old_dir = os.path.join(PLUGINS_REPOS_DIR, plugin_dir)
-            new_dir = os.path.join(PLUGINS_TRASH_DIR, uuid.uuid4())
-            print("moving {} {}".format(old_dir, new_dir))
+            while plugin_dir and os.path.dirname(plugin_dir) != PLUGINS_REPOS_DIR:
+                plugin_dir = os.path.dirname(plugin_dir)
+
+            if not plugin_dir:
+                return "Error uninstalling plugin: {}.\nCannot locae plugin directory.".format(plugin_name)
+
+            self.plugin_manager.deactivatePluginByName(plugin_name)
+
+            old_base = os.path.basename(plugin_dir)
+            new_base = "{}.{}".format(os.path.basename(plugin_dir), str(uuid.uuid4()))
+            new_dir = os.path.join(PLUGINS_TRASH_DIR, new_base)
+            shutil.move(plugin_dir, new_dir)
+
+            return "Uninstalled plugin: {}".format(plugin_name)
                     
                 
             
