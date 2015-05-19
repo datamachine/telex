@@ -79,7 +79,8 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             args = [GIT_BIN, "clone", PLUGIN_LINKS[plugin_name]]
             p = subprocess.Popen(args, cwd=REPO_DIR)
             repo_paths = os.listdir(REPO_DIR)
-            print(repo_paths)
+            plugin_paths = [os.path.join(REPO_DIR, repo] for repo in repo_paths]
+            print(plugin_paths)
             #self.plugin_manager.getPluginLocator().updatePluginPlaces()
         return ""
 
