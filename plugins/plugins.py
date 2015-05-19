@@ -88,7 +88,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         urldata = urlparse(matches.group(2))
 
         url = None
-        if urldata.schema in [ "http", "https" ]:
+        if urldata.scheme in [ "http", "https" ]:
             url = plugin
         elif plugin in PLUGIN_LINKS.keys():
             url = PLUGIN_LINKS[plugin]
