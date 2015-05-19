@@ -29,6 +29,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "^!plugins? (enable) ([\w_.-]+)$",
         "^!plugins? (disable) ([\w_.-]+)$",
         "^!plugins? (install) (.*)$",
+        "^!plugins? (uninstall) ([\w_.-]+)$",
         # "^!plugins? (enable) ([\w_.-]+) (chat)",
         # "^!plugins? (disable) ([\w_.-]+) (chat)",
         "^!plugins? (reload)$"
@@ -61,6 +62,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
         if matches.group(1) == "install":
             return self.install_plugin(matches)
+
+        if matches.group(1) == "uninstall":
+            return self.uninstall_plugin(matches)
 
         if matches.group(1) == "reload":
             return self.reload_plugins()
@@ -103,6 +107,15 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         self.reload_plugins()
 
         return "Successfully installed plugin: {}".format(plugin)
+
+    def uninstall_plugin(self, matches):
+        plugin_name = matches.group(2)
+        to_delete = []
+        for plugin in self.plugin_manager.getAllPlugins():
+            if plugin.name == plugin_name:
+                to_delete.append(plugin_name)
+        for plugin in to_delete:
+            print("{}: {}".format(plugin.name, plugin.path))
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
