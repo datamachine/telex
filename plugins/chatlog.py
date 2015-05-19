@@ -64,7 +64,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
             username = msg["from"]["peer"]["username"]
         self.insert(msg_id=msg["id"], timestamp=msg["date"],
                     uid=msg["from"]["id"], username=username,
-                    full_name="{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"]["last_name"]),
+                    full_name="{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"].get("last_name", "")),
                     chat_id=msg["to"]["id"], message=msg["text"])
         return msg
 
@@ -87,8 +87,8 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
     def insert_history(self, msgs):
         # TODO Support Media Msgs
-        values = [[msg["id"], msg["date"], msg["from"]["id"], msg["from"]["peer"]["username"],
-                   "{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"]["last_name"]),
+        values = [[msg["id"], msg["date"], msg["from"]["id"], msg["from"]["peer"].get("username", ""),
+                   "{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"].get("last_name", "")),
                    msg["to"]["id"], msg["text"]] for msg in msgs if "text" in msg]
         columns = ['msg_id', 'timestamp', 'uid', 'username', 'full_name', 'chat_id', 'message']
 

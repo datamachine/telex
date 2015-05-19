@@ -105,6 +105,7 @@ class DatabaseMixin():
                 cur.execute(sql, parameters)
             else:
                 cur.execute(sql)
+            self.conn.commit()
             return cur.fetchall()
         except sqlite3.Error as e:
             logging.error("Error selecting table {0}: {1}".format(self.table_name, e.args[0]))
