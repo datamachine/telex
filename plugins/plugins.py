@@ -80,8 +80,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             p = subprocess.Popen(args, cwd=REPO_DIR)
             repo_paths = os.listdir(REPO_DIR)
             plugin_paths = [os.path.join(REPO_DIR, repo) for repo in repo_paths]
-            print(plugin_paths)
-            #self.plugin_manager.getPluginLocator().updatePluginPlaces()
+            self.plugin_manager.getPluginLocator().updatePluginPlaces(plugin_paths)
         return ""
 
     def reload_plugins(self):
