@@ -99,6 +99,8 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         if not self.__clone_repository(url):
             return "Error installing plugin: {}".format(plugin)
 
+        self.reload_plugins()
+
         return "Successfully installed plugin: {}".format(plugin)
 
     def reload_plugins(self):
