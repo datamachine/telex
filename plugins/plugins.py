@@ -8,6 +8,8 @@ import re
 
 from urllib.parse import urlparse
 
+from tempfile import TemporaryFile
+
 """
 Installable plugins are currently hardcoded here for early
 development of the installation process. They will be centralized
@@ -168,19 +170,21 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
     def update_plugins_repo(self):
         central_repo_path = os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
-        print(central_repo_path)
+        f = TemporaryFile()
         if not os.path.exists(central_repo_path):
             args = [GIT_BIN, "clone", CENTRAL_REPO_URL]
-            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR)
+            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=f, stderr=f)
             p.wait()
         else:
             args = [GIT_BIN, "reset", "--hard"]
-            p = subprocess.Popen(args, cwd=central_repo_path)
+            p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
             p.wait()
             args = [GIT_BIN, "pull"]
-            p = subprocess.Popen(args, cwd=central_repo_path)
+            p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
             p.wait()
         self.__refresh_central_repo_object()
+        f.seek(0)
+        return f.read()
  
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
