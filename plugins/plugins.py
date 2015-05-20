@@ -1,10 +1,12 @@
 import plugintypes
 import json
 import subprocess
-import os
 import uuid
 import shutil
 import re
+
+import os
+from os import path
 
 from urllib.parse import urlparse
 
@@ -37,6 +39,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "^!plugins? (uninstall) ([\w_.-]+)$",
         "^!plugins? (search) (.*)$",
         "^!plugins? (update)$",
+        "^!plugins? (list) (installed)$",
         # "^!plugins? (enable) ([\w_.-]+) (chat)",
         # "^!plugins? (disable) ([\w_.-]+) (chat)",
         "^!plugins? (reload)$"
@@ -71,7 +74,6 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         else:
             self.__refresh_central_repo_object()
 
-
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
             return self.list_plugins()
@@ -98,6 +100,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
         if command == "reload":
             return self.reload_plugins()
+
+        if command == "list" and matches.group(2) == "installed":
+            return self.list_installed()
 
         
 
@@ -130,8 +135,6 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             url = plugin
         elif plugin in self.central_repo.keys():
             url = self.central_repo[plugin]["url"]
-
-        print(url)
 
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
@@ -196,6 +199,16 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         self.__refresh_central_repo_object()
         f.seek(0)
         return f.read()
+
+    def list_installed(self):
+        installed = ""
+        for plugin in self.plugin_manager.getAllPlugins():
+            d = path.dirname(path.relpath(plugin.path))
+            if path.commonprefix([d, PLUGINS_REPOS_DIR]) == PLUGINS_REPOS_DIR:
+                installed += "{} | {} | {}".format(plugin.name, plugin.version, plugin.description)
+        return installed
+        
+        
  
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
