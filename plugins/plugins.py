@@ -24,8 +24,6 @@ CENTRAL_REPO_DIR="telegram-pybot-plugin-repo"
 
 PLUGINS_REPOS_DIR="plugins.repos"
 PLUGINS_TRASH_DIR="plugins.trash"
-GIT_BIN="/usr/bin/git"
-
 
 class PluginsPlugin(plugintypes.TelegramPlugin):
     """
@@ -51,6 +49,14 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         # "!plugins disable [plugin] chat: disable plugin only this chat.",
         "!plugins reload: reloads all plugins."
     ]
+
+    @property
+    def git_bin(self):
+        if not self.has_option("git_bin"):
+            self.write_option("git_bin", "/usr/bin/git")
+        return self.read_option("git_bin")
+
+
 
     def __refresh_central_repo_object(self):
         with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
@@ -109,7 +115,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
     def __clone_repository(self, url):
             fp = TemporaryFile(mode="r")
-            args = [GIT_BIN, "clone", url]
+            args = [self.git_bin, "clone", url]
             p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=fp, stderr=fp)
             code = p.wait()
             fp.seek(0)
@@ -177,14 +183,14 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         central_repo_path = os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
         f = TemporaryFile()
         if not os.path.exists(central_repo_path):
-            args = [GIT_BIN, "clone", CENTRAL_REPO_URL]
+            args = [self.git_bin, "clone", CENTRAL_REPO_URL]
             p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=f, stderr=f)
             p.wait()
         else:
-            args = [GIT_BIN, "reset", "--hard"]
+            args = [self.git_bin, "reset", "--hard"]
             p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
             p.wait()
-            args = [GIT_BIN, "pull"]
+            args = [self.git_bin, "pull"]
             p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
             p.wait()
         self.__refresh_central_repo_object()
