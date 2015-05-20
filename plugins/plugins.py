@@ -48,6 +48,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "^!plugins? (disable) ([\w_.-]+)$",
         "^!plugins? (install) (.*)$",
         "^!plugins? (uninstall) ([\w_.-]+)$",
+        "^!plugins? (search) (.*)$",
         # "^!plugins? (enable) ([\w_.-]+) (chat)",
         # "^!plugins? (disable) ([\w_.-]+) (chat)",
         "^!plugins? (reload)$"
@@ -70,8 +71,6 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
         self.plugins_repo = json.loads(PLUGINS_JSON)
 
-        self.search_plugins("ex")
-
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
             return self.list_plugins()
@@ -91,7 +90,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return self.uninstall_plugin(matches)
 
         if command == "search":
-            return self.search_plugins(matches)
+            return self.search_plugins(matches.group(2))
 
         if command == "reload":
             return self.reload_plugins()
@@ -161,14 +160,14 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return "Uninstalled plugin: {}".format(plugin_name)
         return "Unable to find plugin: {}".format(plugin_name)
 
-    def search_plugins(self, matches):
-        prog = re.compile(matches, flags=re.IGNORECASE)
-        results = {}
+    def search_plugins(self, query):
+        prog = re.compile(query, flags=re.IGNORECASE)
+        results = ""
         for plugin in self.plugins_repo:
             description = self.plugins_repo[plugin]["description"]
             if prog.search(plugin) or prog.search(description):
-                results[plugin] = self.plugins_repo[plugin]
-        print(results)
+                results += "{} | {} | {}\n".format(plugin, self.plugins_repo[plugin]["version"], self.plugins_repo[plugin]["description"])
+        return results
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
