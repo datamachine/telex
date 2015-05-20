@@ -158,9 +158,6 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def search_plugins(self, matches):
         prog = re.compile(".*{}.*".format(matches.group(2)))
         results = []
-        for 
-        
-        pass
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
