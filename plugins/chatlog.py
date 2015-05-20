@@ -40,13 +40,13 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         DatabaseMixin.__init__(self)
 
     def run(self, msg, matches):
-        chat_id = msg["to"]["id"]
+        chat_id = msg.dest.id
         if matches.group(0) == "!stats":
             return self.stats_count(chat_id)
         if matches.group(0).startswith("!stats_pattern"):
             return self.stats_count(chat_id, matches.group(1))
         if matches.group(0) == "!loadhistory" and self.bot.admin_check(msg):
-            return self.load_history(msg["to"]["type"], msg["to"]["id"])
+            return self.load_history(msg.dest)
 
         if matches.group(0).startswith("!seen"):
             if matches.group(2) is not None:
@@ -57,16 +57,14 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                 return self.seen_by_fullname(chat_id, matches.group(4))
 
     def pre_process(self, msg):
-        if "media" in msg: #TODO support media
-          return msg
-        username = ""
-        if "username" in msg["from"]["peer"]:
-            username = msg["from"]["peer"]["username"]
-        self.insert(msg_id=msg["id"], timestamp=msg["date"],
-                    uid=msg["from"]["id"], username=username,
-                    full_name="{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"].get("last_name", "")),
-                    chat_id=msg["to"]["id"], message=msg["text"])
-        return msg
+        if not hasattr(msg, 'text'): #TODO support media
+          return
+        if hasattr(msg.src, 'username'):
+            username = msg.src.username
+        self.insert(msg_id=msg.id, timestamp=msg.date,
+                    uid=msg.src.id, username=username,
+                    full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or '',
+                    chat_id=msg.dest.id, message=msg.text)
 
     def history_cb(self, msg_count, chat_type, chat_id, success, msgs):
         if success:
@@ -87,9 +85,9 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
     def insert_history(self, msgs):
         # TODO Support Media Msgs
-        values = [[msg["id"], msg["date"], msg["from"]["id"], msg["from"]["peer"].get("username", ""),
-                   "{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"].get("last_name", "")),
-                   msg["to"]["id"], msg["text"]] for msg in msgs if "text" in msg]
+        values = [[msg.id, msg.date, msg.src.id, msg.src.username or '',
+                   "{0} {1}".format(msg.src.first_name or '', msg.src.last_name or ''),
+                   msg.dest.id, msg.text] for msg in msgs if hasattr(msg, 'text')]
         columns = ['msg_id', 'timestamp', 'uid', 'username', 'full_name', 'chat_id', 'message']
 
         self.insert_many(columns, values)
