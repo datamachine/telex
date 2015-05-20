@@ -32,9 +32,11 @@ PLUGINS_JSON="""
 }
 """
 
+CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
+CENTRAL_REPO_DIR="telegram-pybot-plugin-repo"
+
 PLUGINS_REPOS_DIR="plugins.repos"
 PLUGINS_TRASH_DIR="plugins.trash"
-PLUGINS_DIR="plugins"
 GIT_BIN="/usr/bin/git"
 
 
@@ -49,6 +51,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "^!plugins? (install) (.*)$",
         "^!plugins? (uninstall) ([\w_.-]+)$",
         "^!plugins? (search) (.*)$",
+        "^!plugins? (update)$",
         # "^!plugins? (enable) ([\w_.-]+) (chat)",
         # "^!plugins? (disable) ([\w_.-]+) (chat)",
         "^!plugins? (reload)$"
@@ -91,6 +94,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
         if command == "search":
             return self.search_plugins(matches.group(2))
+
+        if command == "update":
+            return self.update_plugins_repo()
 
         if command == "reload":
             return self.reload_plugins()
@@ -169,6 +175,21 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
                 results += "{} | {} | {}\n".format(plugin, self.plugins_repo[plugin]["version"], self.plugins_repo[plugin]["description"])
         return results
 
+    def update_plugins_repo(self):
+        central_repo_path = os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
+        print(central_repo_path)
+        if not os.path.exists(central_repo_path):
+            args = [GIT_BIN, "clone", CENTRAL_REPO_URL]
+            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR)
+            p.wait()
+        else:
+            args = [GIT_BIN, "reset", "--hard"]
+            p = subprocess.Popen(args, cwd=central_repo_path)
+            p.wait()
+            args = [GIT_BIN, "pull"]
+            p = subprocess.Popen(args, cwd=central_repo_path)
+            p.wait()
+ 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
         return "Plugins reloaded"
