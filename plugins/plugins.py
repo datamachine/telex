@@ -62,8 +62,11 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
 
     def __refresh_central_repo_object(self):
-        with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
-            self.central_repo = json.load(f)
+        try:
+            with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
+                self.central_repo = json.load(f)
+        except:
+            print("Error opening repo.json")
 
     def activate_plugin(self):
         if not os.path.exists(PLUGINS_REPOS_DIR):
