@@ -23,11 +23,15 @@ PLUGINS_JSON="""
         "url": "https://github.com/xlopo/tg-pybot-whiskey",
         "description": "Pass the whiskey.",
         "version": "1.0"
+    },
+    "Example": {
+        "url": "https://example.com",
+        "description": "This is only an example.",
+        "version": "0.1"
     }
 }
 """
 
-PLUGIN_LINKS={ "Whiskey": "https://github.com/xlopo/tg-pybot-whiskey" }
 PLUGINS_REPOS_DIR="plugins.repos"
 PLUGINS_TRASH_DIR="plugins.trash"
 PLUGINS_DIR="plugins"
@@ -65,6 +69,8 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             self.reload_plugins()
 
         self.plugins_repo = json.loads(PLUGINS_JSON)
+
+        self.search_plugins("ex")
 
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
@@ -116,8 +122,8 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         url = None
         if urldata.scheme in [ "http", "https" ]:
             url = plugin
-        elif plugin in PLUGIN_LINKS.keys():
-            url = PLUGIN_LINKS[plugin]
+        elif plugin in self.plugins_repo.keys():
+            url = self.plugins_repo[plugin]["url"]
 
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
@@ -137,13 +143,13 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
             plugin_dir = os.path.relpath(os.path.dirname(plugin.path))
             if not plugin_dir.startswith(PLUGINS_REPOS_DIR):
-                return "Error uninstalling plugin: {}.\nCannot locae plugin directory.".format(plugin_name)
+                return "Error uninstalling plugin: {}.\nCannot locate plugin directory.".format(plugin_name)
 
             while plugin_dir and os.path.dirname(plugin_dir) != PLUGINS_REPOS_DIR:
                 plugin_dir = os.path.dirname(plugin_dir)
 
             if not plugin_dir:
-                return "Error uninstalling plugin: {}.\nCannot locae plugin directory.".format(plugin_name)
+                return "Error uninstalling plugin: {}.\nCannot locate plugin directory.".format(plugin_name)
 
             self.plugin_manager.deactivatePluginByName(plugin_name)
 
@@ -156,8 +162,13 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         return "Unable to find plugin: {}".format(plugin_name)
 
     def search_plugins(self, matches):
-        prog = re.compile(".*{}.*".format(matches.group(2)))
-        results = []
+        prog = re.compile(matches, flags=re.IGNORECASE)
+        results = {}
+        for plugin in self.plugins_repo:
+            description = self.plugins_repo[plugin]["description"]
+            if prog.search(plugin) or prog.search(description):
+                results[plugin] = self.plugins_repo[plugin]
+        print(results)
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
