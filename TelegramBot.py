@@ -82,7 +82,7 @@ class TelegramBot:
         if msg.out or not self.binlog_done:
             return
 
-        peer = get_peer_to_send(msg)
+        peer = self.get_peer_to_send(msg)
 
         # run pre_process
         for plugin_info in self.plugin_manager.getAllPlugins():

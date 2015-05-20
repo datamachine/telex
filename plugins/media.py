@@ -16,5 +16,5 @@ class MediaPlugin(plugintypes.TelegramPlugin):
     def run(self, msg, matches):
         filename = self.bot.download_to_file(matches.group(1), matches.group(2))
         if filename:
-           ptype, pid = self.bot.get_peer_to_send(msg)
-           tgl.send_document(ptype, pid, filename)
+           peer = self.bot.get_peer_to_send(msg)
+           tgl.send_document(peer, filename)
