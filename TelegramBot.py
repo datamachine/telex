@@ -40,11 +40,11 @@ class TelegramBot:
 
     # Util
     def admin_check(self, msg):
-        if msg["from"]["id"] == self.admins or msg["from"]["id"] in self.admins:
+        if msg.src.id == self.admins or msg.src.id in self.admins:
             return True
         else:
-            ptype, pid = self.get_peer_to_send(msg)
-            tgl.send_msg(ptype, pid, "Admin required for this feature")
+            peer = self.get_peer_to_send(msg)
+            peer.send_msg("Admin required for this feature")
             return False
 
     def get_peer_to_send(self, msg):
