@@ -40,22 +40,20 @@ class TelegramBot:
 
     # Util
     def admin_check(self, msg):
-        if msg["from"]["id"] == self.admins or msg["from"]["id"] in self.admins:
+        if msg.src.id == self.admins or msg.src.id in self.admins:
             return True
         else:
-            ptype, pid = self.get_peer_to_send(msg)
-            tgl.send_msg(ptype, pid, "Admin required for this feature")
+            peer = self.get_peer_to_send(msg)
+            peer.send_msg("Admin required for this feature")
             return False
 
     def get_peer_to_send(self, msg):
-        if msg["to"]["id"] == self.our_id:  # direct message
-            ptype = msg["from"]["type"]
-            pid = msg["from"]["id"]
+        if msg.dest.id == self.our_id:  # direct message
+            peer = msg.src
         else:  # chat room
-            ptype = msg["to"]["type"]
-            pid = msg["to"]["id"]
+            peer = msg.dest
 
-        return ptype, pid
+        return peer
 
     def download_to_file(self, url, ext):
         try:
@@ -81,35 +79,30 @@ class TelegramBot:
         return "Set ID: " + str(self.our_id)
 
     def on_msg_receive(self, msg):
-        if msg["out"] or not self.binlog_done:
+        if msg.out or not self.binlog_done:
             return
 
-        if msg["to"]["id"] == self.our_id:  # direct message
-            ptype = msg["from"]["type"]
-            pid = msg["from"]["id"]
-        else:  # chat room
-            ptype = msg["to"]["type"]
-            pid = msg["to"]["id"]
+        peer = get_peer_to_send(msg)
 
         # run pre_process
         for plugin_info in self.plugin_manager.getAllPlugins():
             if plugin_info.plugin_object.is_activated:
-                msg = plugin_info.plugin_object.pre_process(msg)
+                plugin_info.plugin_object.pre_process(msg)
 
 
 
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
             for pattern in plugin_info.plugin_object.patterns:
-                if plugin_info.plugin_object.is_activated and "media" not in msg:
-                    matches = re.search(pattern, msg["text"])
+                if plugin_info.plugin_object.is_activated and hasattr(msg, 'text'):
+                    matches = re.search(pattern, msg.text)
                     if matches is not None:
                         reply = plugin_info.plugin_object.run(msg, matches)
 
                         if reply is not None:
-                            send_msg(ptype, pid, reply)
+                            peer.send_msg(reply)
 
-        tgl.mark_read(ptype, pid)
+        tgl.mark_read(peer)
 
     def on_secret_chat_update(self, peer, types):
         pass
@@ -120,49 +113,3 @@ class TelegramBot:
     def on_chat_update(self, peer, types):
         pass
 
-
-def send_msg(ptype, pid, msg):
-    tgl.send_msg(ptype, pid, msg)
-
-# test driver without tg running
-if __name__ == "__main__":
-    bot = TelegramBot()
-
-    # Set callbacks
-    tgl.set_on_binlog_replay_end(bot.on_binlog_replay_end)
-    tgl.set_on_get_difference_end(bot.on_get_difference_end)
-    tgl.set_on_our_id(bot.on_our_id)
-    tgl.set_on_msg_receive(bot.on_msg_receive)
-    tgl.set_on_secret_chat_update(bot.on_secret_chat_update)
-    tgl.set_on_user_update(bot.on_user_update)
-    tgl.set_on_chat_update(bot.on_chat_update)
-
-    bot.on_binlog_replay_end()
-    bot.on_our_id(999)
-
-    import datetime
-    message = {
-        'date': datetime.datetime.now(),
-        'flags': 16.0,
-        'from': {'id': 9999999,
-                 'peer': {'access_hash': 1.0,
-                          'first_name': 'Tester',
-                          'last_name': 'Person',
-                          'username': 'TestSender'},
-                 'type': 1,
-                 'type_str': 'user'},
-        'id': '555',
-        'out': False,
-        'service': False,
-        'text': '!stats',
-        'to': {'id': 111111,
-                'peer': {'first_name': 'Bot',
-                         'last_name': 'McBot',
-                         'phone': '155555555',
-                         'username': 'TestBot'},
-                'type': 1,
-                'type_str': 'user'},
-        'unread': True}
-
-    print("Sending {0}".format(message["text"]))
-    bot.on_msg_receive(message)

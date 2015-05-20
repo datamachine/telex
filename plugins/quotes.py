@@ -45,7 +45,7 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         DatabaseMixin.__init__(self)
         
     def run(self, msg, matches):
-        chat_id = msg["to"]["id"]
+        chat_id = msg.dest.id
         if matches.group(0) == "!quote":
             return self.get_random_quote(chat_id)
 
@@ -65,12 +65,12 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
             return self.add_quote(msg, matches.group(1))
 
     def add_quote(self, msg, quote):
-        if "username" in msg["from"]["peer"]:
-            username = msg["from"]["peer"]["username"]
-        self.insert(timestamp=msg["date"],
-                    uid=msg["from"]["id"], username=username,
-                    full_name="{0} {1}".format(msg["from"]["peer"]["first_name"], msg["from"]["peer"]["last_name"]),
-                    chat_id=msg["to"]["id"], quote=quote)
+        if hasattr(msg.src, 'username'):
+            username = msg.src.username
+        self.insert(timestamp=msg.date,
+                    uid=msg.src.id, username=username,
+                    full_name="{0} {1}".format(msg.src.first_name or '', msg.src.last_name or ''),
+                    chat_id=msg.dest.id, quote=quote)
         return "Done!"
 
     def get_quote(self, chat_id, quote_id):
@@ -112,16 +112,16 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         
 
     def add_reply(self, msg):
-        if "reply_id" not in msg:
+        if not hasattr(msg, 'reply_id'):
             return "The !quotethis must be used in a reply!"
-        if "reply_to" not in msg:
+        if not hasattr(msg, 'reply') or msg.reply is None:
             return "The reply is too old, cannot add it." # TODO look into fix in tgl that can't load from server
-        if "text" not in msg["reply_to"]:
+        if not hasattr(msg.reply, 'text'):
             return "Media message replys not supported currently."
 
-        orig_peer = msg["reply_to"]["from"]["peer"]
+        orig_peer = msg.reply.src
 
-        quote = "{0} {1}: {2}".format(orig_peer["first_name"], orig_peer["last_name"], msg["reply_to"]["text"])
+        quote = "{0} {1}: {2}".format(orig_peer.first_name or '', orig_peer.last_name or '', msg.reply.text)
         return self.add_quote(msg, quote)
 
     def get_random_quote(self, chat_id):

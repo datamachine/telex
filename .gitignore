@@ -4,3 +4,4 @@ data/data.db
 .idea
 .virtualenv
 log.txt
+plugins.conf
