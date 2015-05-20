@@ -108,9 +108,12 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return "Error disabling plugin: {}".format(matches.group(2))
 
     def __clone_repository(self, url):
+            fp = TemporaryFile(mode="r")
             args = [GIT_BIN, "clone", url]
-            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR)
-            return p.wait()
+            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=fp, stderr=fp)
+            code = p.wait()
+            fp.seek(0)
+            return (code, fp.read())
 
     def install_plugin(self, matches):
         plugin = matches.group(2)
@@ -122,15 +125,18 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         elif plugin in self.central_repo.keys():
             url = self.central_repo[plugin]["url"]
 
+        print(url)
+
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
 
-        if self.__clone_repository(url) != 0:
-            return "Error installing plugin: {}".format(plugin)
+        code, msg = self.__clone_repository(url)
+        if code != 0:
+            return msg
 
         self.reload_plugins()
-
-        return "Successfully installed plugin: {}".format(plugin)
+ 
+        return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
 
     def uninstall_plugin(self, matches):
         plugin_name = matches.group(2)
