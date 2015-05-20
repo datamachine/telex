@@ -4,6 +4,7 @@ import subprocess
 import os
 import uuid
 import shutil
+import re
 
 from urllib.parse import urlparse
 
@@ -14,6 +15,16 @@ online at a later date.
 
 Plugin data will be downloaded in JSON format and inserted to a sqlite
 database for local cache.
+"""
+
+PLUGINS_JSON="""
+{
+    "Whiskey": {
+        "url": "https://github.com/xlopo/tg-pybot-whiskey",
+        "description": "Pass the whiskey.",
+        "version": "1.0"
+    }
+}
 """
 
 PLUGIN_LINKS={ "Whiskey": "https://github.com/xlopo/tg-pybot-whiskey" }
@@ -53,23 +64,30 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             self.plugin_manager.updatePluginPlaces([PLUGINS_REPOS_DIR])
             self.reload_plugins()
 
+        self.plugins_repo = json.loads(PLUGINS_JSON)
+
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
             return self.list_plugins()
 
-        if matches.group(1) == "enable":
+        command = matches.group(1)
+
+        if command == "enable":
             return self.enable_plugin(matches)
 
-        if matches.group(1) == "disable":
+        if command == "disable":
             return self.disable_plugin(matches)
 
-        if matches.group(1) == "install":
+        if command == "install":
             return self.install_plugin(matches)
 
-        if matches.group(1) == "uninstall":
+        if command == "uninstall":
             return self.uninstall_plugin(matches)
 
-        if matches.group(1) == "reload":
+        if command == "search":
+            return self.search_plugins(matches)
+
+        if command == "reload":
             return self.reload_plugins()
 
         
@@ -136,9 +154,13 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
             return "Uninstalled plugin: {}".format(plugin_name)
         return "Unable to find plugin: {}".format(plugin_name)
-                    
-                
-            
+
+    def search_plugins(self, matches):
+        prog = re.compile(".*{}.*".format(matches.group(2)))
+        results = []
+        for 
+        
+        pass
 
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
