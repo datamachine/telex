@@ -17,21 +17,6 @@ Plugin data will be downloaded in JSON format and inserted to a sqlite
 database for local cache.
 """
 
-PLUGINS_JSON="""
-{
-    "Whiskey": {
-        "url": "https://github.com/xlopo/tg-pybot-whiskey",
-        "description": "Pass the whiskey.",
-        "version": "1.0"
-    },
-    "Example": {
-        "url": "https://example.com",
-        "description": "This is only an example.",
-        "version": "0.1"
-    }
-}
-"""
-
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
 CENTRAL_REPO_DIR="telegram-pybot-plugin-repo"
 
@@ -65,14 +50,20 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "!plugins reload: reloads all plugins."
     ]
 
+    def __refresh_central_repo_object(self):
+        with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
+            self.central_repo = json.load(f)
+            print(self.central_repo)
+
     def activate_plugin(self):
         if not os.path.exists(PLUGINS_REPOS_DIR):
             os.makedirs(PLUGINS_REPOS_DIR)
         if PLUGINS_REPOS_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
             self.plugin_manager.updatePluginPlaces([PLUGINS_REPOS_DIR])
             self.reload_plugins()
+        else:
+            self.__refresh_central_repo_object()
 
-        self.plugins_repo = json.loads(PLUGINS_JSON)
 
     def run(self, msg, matches):
         if matches.group(0) == "!plugins":
@@ -189,6 +180,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             args = [GIT_BIN, "pull"]
             p = subprocess.Popen(args, cwd=central_repo_path)
             p.wait()
+        self.__refresh_central_repo_object()
  
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
