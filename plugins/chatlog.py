@@ -64,7 +64,7 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         self.insert(msg_id=msg.id, timestamp=msg.date,
                     uid=msg.src.id, username=username,
                     full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or '',
-                    chat_id=msg.dest.id, message=msg.text)
+                    chat_id=msg.dest.id, message=msg.text))
 
     def history_cb(self, msg_count, chat_type, chat_id, success, msgs):
         if success:
