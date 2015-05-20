@@ -55,7 +55,6 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def __refresh_central_repo_object(self):
         with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
             self.central_repo = json.load(f)
-            print(self.central_repo)
 
     def activate_plugin(self):
         if not os.path.exists(PLUGINS_REPOS_DIR):
@@ -89,7 +88,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return self.search_plugins(matches.group(2))
 
         if command == "update":
-            return self.update_plugins_repo()
+            return self.update_central_repo()
 
         if command == "reload":
             return self.reload_plugins()
@@ -120,8 +119,8 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         url = None
         if urldata.scheme in [ "http", "https" ]:
             url = plugin
-        elif plugin in self.plugins_repo.keys():
-            url = self.plugins_repo[plugin]["url"]
+        elif plugin in self.central_repo.keys():
+            url = self.central_repo[plugin]["url"]
 
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
@@ -162,13 +161,13 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def search_plugins(self, query):
         prog = re.compile(query, flags=re.IGNORECASE)
         results = ""
-        for plugin in self.plugins_repo:
-            description = self.plugins_repo[plugin]["description"]
+        for plugin in self.central_repo:
+            description = self.central_repo[plugin]["description"]
             if prog.search(plugin) or prog.search(description):
-                results += "{} | {} | {}\n".format(plugin, self.plugins_repo[plugin]["version"], self.plugins_repo[plugin]["description"])
+                results += "{} | {} | {}\n".format(plugin, self.central_repo[plugin]["version"], self.central_repo[plugin]["description"])
         return results
 
-    def update_plugins_repo(self):
+    def update_central_repo(self):
         central_repo_path = os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
         f = TemporaryFile()
         if not os.path.exists(central_repo_path):
