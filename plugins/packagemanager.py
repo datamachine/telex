@@ -23,18 +23,19 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     telegram-pybot's plugin package manager
     """
     patterns = [
-        "^!pkg? (install) (.*)$",
-        "^!pkg? (uninstall) ([\w_.-]+)$",
         "^!pkg? (search) (.*)$",
+        "^!pkg? (install) (.*)$",
         "^!pkg? (update)$",
+        "^!pkg? (uninstall) ([\w_.-]+)$",
         "^!pkg? (installed)$",
     ]
 
     usage = [
+        "!pkg search <query>: Search the repo for plugins",
+        "!pkg update: Update packages",
         "!pkg install <package name>: Install a package",
-        "!pkg uninstall <package name>: uninstall a package",
-        "!pkg search <query>: search the repo for plugins",
-        "!pkg installed: list installed packages"
+        "!pkg uninstall <package name>: Uninstall a package",
+        "!pkg installed: List installed packages"
     ]
 
     @property
