@@ -1,16 +1,4 @@
 import plugintypes
-import json
-import subprocess
-import uuid
-import shutil
-import re
-
-import os
-from os import path
-
-from urllib.parse import urlparse
-
-from tempfile import TemporaryFile
 
 class PluginsPlugin(plugintypes.TelegramPlugin):
     """
