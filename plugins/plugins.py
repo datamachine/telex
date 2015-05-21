@@ -63,7 +63,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
 
     def __refresh_central_repo_object(self):
         try:
-            with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
+            with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo2.json"), "r") as f:
                 self.central_repo = json.load(f)
         except:
             print("Error opening repo.json")
@@ -129,6 +129,12 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             fp.seek(0)
             return (code, fp.read())
 
+    def __get_repo_pkg_data(self, plugin_name):
+        for pkg in self.central_repo["packages"]:
+            if pkg["name"] == plugin_name:
+                return pkg
+        return None
+
     def install_plugin(self, matches):
         plugin = matches.group(2)
         urldata = urlparse(matches.group(2))
@@ -136,8 +142,10 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         url = None
         if urldata.scheme in [ "http", "https" ]:
             url = plugin
-        elif plugin in self.central_repo.keys():
-            url = self.central_repo[plugin]["url"]
+        else:
+            pkg = self.__get_repo_pkg_data(plugin)
+            if pkg:
+                url = pkg["repo"]
 
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
@@ -179,10 +187,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def search_plugins(self, query):
         prog = re.compile(query, flags=re.IGNORECASE)
         results = ""
-        for plugin in self.central_repo:
-            description = self.central_repo[plugin]["description"]
-            if prog.search(plugin) or prog.search(description):
-                results += "{} | {} | {}\n".format(plugin, self.central_repo[plugin]["version"], self.central_repo[plugin]["description"])
+        for pkg in self.central_repo["packages"]:
+            if prog.search(pkg["name"]) or prog.search(pkg["description"]):
+                results += "{} | {} | {}\n".format(pkg["name"], pkg["version"], pkg["description"])
         return results
 
     def update_central_repo(self):
