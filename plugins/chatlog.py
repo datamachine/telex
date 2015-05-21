@@ -66,22 +66,22 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                     full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or '',
                     chat_id=msg.dest.id, message=msg.text))
 
-    def history_cb(self, msg_count, chat_type, chat_id, success, msgs):
+    def history_cb(self, msg_count, chat, success, msgs):
         if success:
             self.insert_history(msgs)
             msg_count += len(msgs)
             if len(msgs) == self.HISTORY_QUERY_SIZE:
-                tgl.get_history(chat_type, chat_id, msg_count,
+                tgl.get_history(chat, msg_count,
                                 self.HISTORY_QUERY_SIZE,
-                                partial(self.history_cb, msg_count, chat_type, chat_id))
+                                partial(self.history_cb, msg_count, chat))
             else:
-                tgl.send_msg(chat_type, chat_id, "Loaded {0} messaged into the table".format(msg_count))
+                tgl.send_msg(chat, "Loaded {0} messaged into the table".format(msg_count))
 
-    def load_history(self, chat_type, chat_id):
+    def load_history(self, chat):
         msg_count = 0
-        tgl.get_history(chat_type, chat_id, msg_count,
+        tgl.get_history(chat, msg_count,
                         self.HISTORY_QUERY_SIZE,
-                        partial(self.history_cb, msg_count, chat_type, chat_id))
+                        partial(self.history_cb, msg_count, chat))
 
     def insert_history(self, msgs):
         # TODO Support Media Msgs

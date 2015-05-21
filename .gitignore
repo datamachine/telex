@@ -5,3 +5,4 @@ data/data.db
 .virtualenv
 log.txt
 plugins.conf
+telegram-bot.conf

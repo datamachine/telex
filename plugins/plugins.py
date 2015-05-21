@@ -208,7 +208,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             p.wait()
         self.__refresh_central_repo_object()
         f.seek(0)
-        return f.read()
+        return f.read().decode('utf-8')
 
     def list_installed(self):
         installed = ""
