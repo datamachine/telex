@@ -8,6 +8,8 @@ import re
 import os
 from os import path
 
+import pip
+
 from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
@@ -48,13 +50,13 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def __refresh_central_repo_object(self):
         try:
-            with open(os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
+            with open(path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
                 self.central_repo = json.load(f)
         except:
             print("Error opening repo.json")
 
     def activate_plugin(self):
-        if not os.path.exists(PLUGINS_REPOS_DIR):
+        if not path.exists(PLUGINS_REPOS_DIR):
             os.makedirs(PLUGINS_REPOS_DIR)
         if PLUGINS_REPOS_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
             self.plugin_manager.updatePluginPlaces([PLUGINS_REPOS_DIR])
@@ -93,6 +95,28 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 return pkg
         return None
 
+    def __get_pkg_repo_path(self, pkg_name):
+        for repo in os.listdir(PLUGINS_REPOS_DIR):
+            repo_path = path.join(PLUGINS_REPOS_DIR, repo)
+            repo_json_path = path.join(repo_path, "repository", "repo.json")
+            try:
+                with open(repo_json_path, 'r') as f:
+                    repo_json = json.loads(f.read())
+                    if repo_json["name"] == pkg_name:
+                        print(repo_path)
+                        return repo_path
+                    continue
+            except:
+                continue 
+        return None
+
+    def __get_pkg_requirements_path(self, pkg_name):
+        pkg_repo_path = self.__get_pkg_repo_path(pkg_name)
+        if not pkg_repo_path:
+            return None
+        
+        return path.join(pkg_repo_path, "repository", "requirements.txt")
+
     def install_plugin(self, matches):
         plugin = matches.group(2)
         urldata = urlparse(matches.group(2))
@@ -112,6 +136,11 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if code != 0:
             return msg
 
+        pkg_req_path = self.__get_pkg_requirements_path(plugin)
+        print(pkg_req_path)
+        if os.path.exists(pkg_req_path):
+            pip.main(['install', '-r', pkg_req_path])
+
         self.reload_plugins()
  
         return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
@@ -122,21 +151,21 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             if plugin.name != plugin_name:
                 continue
 
-            plugin_dir = os.path.relpath(os.path.dirname(plugin.path))
+            plugin_dir = path.relpath(path.dirname(plugin.path))
             if not plugin_dir.startswith(PLUGINS_REPOS_DIR):
                 return "Error uninstalling plugin: {}.\nCannot locate plugin directory.".format(plugin_name)
 
-            while plugin_dir and os.path.dirname(plugin_dir) != PLUGINS_REPOS_DIR:
-                plugin_dir = os.path.dirname(plugin_dir)
+            while plugin_dir and path.dirname(plugin_dir) != PLUGINS_REPOS_DIR:
+                plugin_dir = path.dirname(plugin_dir)
 
             if not plugin_dir:
                 return "Error uninstalling plugin: {}.\nCannot locate plugin directory.".format(plugin_name)
 
             self.plugin_manager.deactivatePluginByName(plugin_name)
 
-            old_base = os.path.basename(plugin_dir)
-            new_base = "{}.{}".format(os.path.basename(plugin_dir), str(uuid.uuid4()))
-            new_dir = os.path.join(PLUGINS_TRASH_DIR, new_base)
+            old_base = path.basename(plugin_dir)
+            new_base = "{}.{}".format(path.basename(plugin_dir), str(uuid.uuid4()))
+            new_dir = path.join(PLUGINS_TRASH_DIR, new_base)
             shutil.move(plugin_dir, new_dir)
 
             return "Uninstalled plugin: {}".format(plugin_name)
@@ -151,9 +180,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return results
 
     def update_central_repo(self):
-        central_repo_path = os.path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
+        central_repo_path = path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
         f = TemporaryFile()
-        if not os.path.exists(central_repo_path):
+        if not path.exists(central_repo_path):
             args = [self.git_bin, "clone", CENTRAL_REPO_URL]
             p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=f, stderr=f)
             p.wait()
