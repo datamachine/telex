@@ -29,7 +29,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "^!pkg? (install) (.*)$",
         "^!pkg? (update)$",
         "^!pkg? (uninstall) ([\w_.-]+)$",
-        "^!pkg? (installed)$",
+        "^!pkg? (list)$",
     ]
 
     usage = [
@@ -38,7 +38,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "!pkg upgrade: Update all plugins (not implemented)",
         "!pkg install <package name>: Install a package",
         "!pkg uninstall <package name>: Uninstall a package",
-        "!pkg installed: List installed packages"
+        "!pkg list: List installed packages"
     ]
 
     @property
@@ -79,7 +79,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if command == "update":
             return self.update_central_repo()
 
-        if command == "installed":
+        if command == "list":
             return self.get_installed()
 
     def __clone_repository(self, url):
