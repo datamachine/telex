@@ -115,9 +115,18 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         pkg_repo_path = self.__get_pkg_repo_path(pkg_name)
         if not pkg_repo_path:
             return None
-        
+
         return path.join(pkg_repo_path, "repository", "requirements.txt")
 
+    def __get_repo_json_from_repo_path(self, repo_path):
+        repo_json_path = repo_json_path = path.join(repo_path, "repository", "repo.json")
+        try:
+            with open(repo_json_path, 'r') as f:
+                return json.loads(f.read())
+        except:
+            pass
+        return None
+    
     def install_plugin(self, matches):
         plugin = matches.group(2)
         urldata = urlparse(matches.group(2))
@@ -200,7 +209,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     def get_installed(self):
         pkgs = ""
         for f in os.listdir(PLUGINS_REPOS_DIR):
-            pkgs += "{}\n".format(f)
+            repo_path = os.path.join(PLUGINS_REPOS_DIR, f)
+            repo_json = self.__get_repo_json_from_repo_path(repo_path)
+            if repo_json:
+                pkgs += "{} | {} | {}\n".format(repo_json["name"], repo_json["version"], repo_json["description"])
         return pkgs
  
     def reload_plugins(self):
