@@ -138,8 +138,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             return msg
 
         pkg_req_path = self.__get_pkg_requirements_path(plugin)
-        print(pkg_req_path)
-        if os.path.exists(pkg_req_path):
+        if pkg_req_path and os.path.exists(pkg_req_path):
             pip.main(['install', '-r', pkg_req_path])
 
         self.reload_plugins()
