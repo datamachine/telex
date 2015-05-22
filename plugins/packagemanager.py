@@ -34,7 +34,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     usage = [
         "!pkg search <query>: Search the repo for plugins",
-        "!pkg update: Update packages",
+        "!pkg update: Update the package repo cache",
+        "!pkg upgrade: Update all plugins (not implemented)",
         "!pkg install <package name>: Install a package",
         "!pkg uninstall <package name>: Uninstall a package",
         "!pkg installed: List installed packages"
