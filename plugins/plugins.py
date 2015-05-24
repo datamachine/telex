@@ -1,5 +1,8 @@
 import plugintypes
 
+NO_ENTRY = b'\xf0\x9f\x9a\xab'.decode("utf-8")
+CHECK_BOX = b'\xe2\x9c\x85'.decode("utf-8")
+
 class PluginsPlugin(plugintypes.TelegramPlugin):
     """
     Plugin to manage other plugins. Enable, disable or reload.
@@ -55,7 +58,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     def list_plugins(self):
         text = ""
         for plugin in self.plugin_manager.getAllPlugins():
-            text += "{0}: ({1})\n".format(plugin.name,
-                                          "(Enabled)" if plugin.plugin_object.is_activated else "(Disabled)")
+            text += "{0}: ({1})\n".format(
+                CHECK_BOX if plugin.plugin_object.is_activated else NO_ENTRY, plugin.name)
 
         return text
