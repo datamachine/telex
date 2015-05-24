@@ -20,6 +20,11 @@ CENTRAL_REPO_DIR="telegram-pybot-plugin-repo"
 PLUGINS_REPOS_DIR="plugins.repos"
 PLUGINS_TRASH_DIR="plugins.trash"
 
+PKG_BASE_DIR="pkg"
+PKG_REPO_DIR="pkg/repos"
+PKG_TRASH_DIR="pkg/trash"
+PKG_INSTALL_DIR="pkg/installed"
+
 class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
     telegram-pybot's plugin package manager
@@ -84,17 +89,17 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if command == "list":
             return self.get_installed()
 
-    def __clone_repository(self, url):
+    def __clone_repository(self, url, dst_dir):
             fp = TemporaryFile(mode="r")
-            args = [self.git_bin, "clone", url]
-            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=fp, stderr=fp)
+            args = [self.git_bin, "clone", url, dst_dir]
+            p = subprocess.Popen(args, cwd=PKG_INSTALL_DIR, stdout=fp, stderr=fp)
             code = p.wait()
             fp.seek(0)
             return (code, fp.read())
 
-    def __get_repo_pkg_data(self, plugin_name):
+    def __get_repo_pkg_data(self, pkg_name):
         for pkg in self.central_repo["packages"]:
-            if pkg["name"] == plugin_name:
+            if pkg["pkg"] == pkg_name:
                 return pkg
         return None
 
@@ -130,6 +135,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return None
     
     def install_plugin(self, matches):
+        if not path.exists(PKG_INSTALL_DIR):
+            os.makedirs(PKG_INSTALL_DIR)
+
         plugin = matches.group(2)
         urldata = urlparse(matches.group(2))
 
@@ -144,7 +152,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
 
-        code, msg = self.__clone_repository(url)
+        code, msg = self.__clone_repository(url, pkg["pkg"])
         if code != 0:
             return msg
 
@@ -187,7 +195,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         results = ""
         for pkg in self.central_repo["packages"]:
             if prog.search(pkg["name"]) or prog.search(pkg["description"]):
-                results += "{} | {} | {}\n".format(pkg["name"], pkg["version"], pkg["description"])
+                results += "{} | {} | {}\n".format(pkg["pkg"], pkg["version"], pkg["description"])
         return results
 
     def update_central_repo(self):
@@ -221,6 +229,4 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         self.plugin_manager.collectPlugins()
         return "Plugins reloaded"
 
-    def list_plugins(self):
-        return os.listdir(PLUGINS_REPOS_DIR)
 
