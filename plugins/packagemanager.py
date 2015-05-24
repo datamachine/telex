@@ -96,7 +96,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def __get_repo_pkg_data(self, pkg_name):
         for pkg in self.central_repo["packages"]:
-            if pkg["pkg"] == pkg_name:
+            if pkg["pkg_name"] == pkg_name:
                 return pkg
         return None
 
@@ -140,7 +140,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if not url:
             return "Invalid plugin or url: {}".format(plugin)
 
-        code, msg = self.__clone_repository(url, pkg["pkg"])
+        code, msg = self.__clone_repository(url, pkg["pkg_name"])
         if code != 0:
             return msg
 
@@ -172,7 +172,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         results = ""
         for pkg in self.central_repo["packages"]:
             if prog.search(pkg["name"]) or prog.search(pkg["description"]):
-                results += "{} | {} | {}\n".format(pkg["pkg"], pkg["version"], pkg["description"])
+                results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
 
     def update_central_repo(self):
