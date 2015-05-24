@@ -94,7 +94,7 @@ class TelegramBot:
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
             for pattern in plugin_info.plugin_object.patterns:
-                if plugin_info.plugin_object.is_activated and hasattr(msg, 'text'):
+                if plugin_info.plugin_object.is_activated and msg.text is not None:
                     matches = re.search(pattern, msg.text)
                     if matches is not None:
                         reply = plugin_info.plugin_object.run(msg, matches)
