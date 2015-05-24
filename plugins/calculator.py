@@ -1,6 +1,5 @@
 import plugintypes
-from urllib import request
-from urllib import error
+from urllib import request, error, parse
 
 
 class CalculatorPlugin(plugintypes.TelegramPlugin):
@@ -21,7 +20,8 @@ class CalculatorPlugin(plugintypes.TelegramPlugin):
     def mathjs(self, expr):
         try:
             base_url = 'http://api.mathjs.org/v1'
-            resp = request.urlopen("{0}/?expr={1}".format(base_url, expr))
+            resp = request.urlopen("{0}/?expr={1}".format(base_url,
+                parse.quote_plus(expr)))
         except error.HTTPError as err:
             if err.code == 400:
                 return err.read().decode('utf-8')

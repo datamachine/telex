@@ -79,7 +79,7 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         if len(results) == 0:
             return "No such quote in the database for this channel!"
         result = results[0]
-        text = "{quote} (#{qid} Added By {name} on {date})\n".format(quote=result["quote"],
+        text = "{quote} ({qid} Added By {name} on {date})\n".format(quote=result["quote"],
                                                                     name=result["full_name"],
                                                                     date=datetime.strptime(result["timestamp"], "%Y-%m-%d %H:%M:%S").date().isoformat(),
                                                                     qid=result["quote_id"])
@@ -94,7 +94,7 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         
         text = "Quotes containing '{0}':\n".format(search)
         for result in results:
-          text += "{quote} (#{qid} Added By {name} on {date})\n".format(quote=result["quote"],
+          text += "{quote} ({qid} Added By {name} on {date})\n".format(quote=result["quote"],
                                                                        name=result["full_name"],
                                                                        date=datetime.strptime(result["timestamp"], "%Y-%m-%d %H:%M:%S").date().isoformat(),
                                                                        qid=result["quote_id"])
@@ -130,7 +130,7 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         if len(results) == 0:
             return "No quotes in the database!"
         result = results[0]
-        text = "{quote} (#{qid} Added By {name} on {date})\n".format(quote=result["quote"],
+        text = "{quote} ({qid} Added By {name} on {date})\n".format(quote=result["quote"],
                                                                     name=result["full_name"],
                                                                     date=datetime.strptime(result["timestamp"], "%Y-%m-%d %H:%M:%S").date().isoformat(),
                                                                     qid=result["quote_id"])
