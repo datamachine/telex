@@ -218,11 +218,11 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def get_installed(self):
         pkgs = ""
-        for f in os.listdir(PLUGINS_REPOS_DIR):
-            repo_path = os.path.join(PLUGINS_REPOS_DIR, f)
+        for f in os.listdir(PKG_INSTALL_DIR):
+            repo_path = os.path.join(PKG_INSTALL_DIR, f)
             repo_json = self.__get_repo_json_from_repo_path(repo_path)
             if repo_json:
-                pkgs += "{} | {} | {}\n".format(repo_json["name"], repo_json["version"], repo_json["description"])
+                pkgs += "{} | {} | {}\n".format(f, repo_json["version"], repo_json["description"])
         return pkgs
  
     def reload_plugins(self):
