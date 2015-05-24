@@ -2,7 +2,8 @@ import plugintypes
 
 class TelegramInfoPlugin(plugintypes.TelegramPlugin):
     patterns = [
-        "^!tginfo (id)"
+        "^!tginfo (id)",
+        "^!tginfo (repr) (.+)"
     ]
 
     usage = [
@@ -10,8 +11,9 @@ class TelegramInfoPlugin(plugintypes.TelegramPlugin):
     ]
 
     def run(self, msg, matches):
-        try:
-            first, last, id = msg.src.first_name, msg.src.last_name, msg.src.id
-            return u"{} {}: {}".format(first, last, id)
-        except:
-            return None
+        cmd = matches.group(1)
+        if cmd == "id":
+           return "{} {}: {}".format(msg.src.first_name, msg.src.last_name, msg.src.id)
+
+        if cmd == "repr":
+            return repr(matches.group(2).encode())
