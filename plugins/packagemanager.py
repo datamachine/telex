@@ -165,30 +165,19 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
 
     def uninstall_plugin(self, matches):
-        plugin_name = matches.group(2)
-        for plugin in self.plugin_manager.getAllPlugins():
-            if plugin.name != plugin_name:
+        pkg_name = matches.group(2)
+        for pkg in os.listdir(PKG_INSTALL_DIR):
+            if pkg != pkg_name:
                 continue
 
-            plugin_dir = path.relpath(path.dirname(plugin.path))
-            if not plugin_dir.startswith(PLUGINS_REPOS_DIR):
-                return "Error uninstalling plugin: {}.\nCannot locate plugin directory.".format(plugin_name)
+            pkg_path = path.join(PKG_INSTALL_DIR, pkg)
 
-            while plugin_dir and path.dirname(plugin_dir) != PLUGINS_REPOS_DIR:
-                plugin_dir = path.dirname(plugin_dir)
+            trash_name = "{}.{}".format(path.basename(pkg_path), str(uuid.uuid4()))
+            trash_path = path.join(PKG_TRASH_DIR, trash_name)
+            shutil.move(pkg_path, trash_path)
 
-            if not plugin_dir:
-                return "Error uninstalling plugin: {}.\nCannot locate plugin directory.".format(plugin_name)
-
-            self.plugin_manager.deactivatePluginByName(plugin_name)
-
-            old_base = path.basename(plugin_dir)
-            new_base = "{}.{}".format(path.basename(plugin_dir), str(uuid.uuid4()))
-            new_dir = path.join(PLUGINS_TRASH_DIR, new_base)
-            shutil.move(plugin_dir, new_dir)
-
-            return "Uninstalled plugin: {}".format(plugin_name)
-        return "Unable to find plugin: {}".format(plugin_name)
+            return "Uninstalled plugin: {}".format(pkg_name)
+        return "Unable to find plugin: {}".format(pkg_name)
 
     def search_plugins(self, query):
         prog = re.compile(query, flags=re.IGNORECASE)
