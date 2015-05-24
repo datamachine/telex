@@ -15,15 +15,15 @@ from urllib.parse import urlparse
 from tempfile import TemporaryFile
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
-CENTRAL_REPO_DIR="telegram-pybot-plugin-repo"
+CENTRAL_REPO_DIR="main"
 
 PLUGINS_REPOS_DIR="plugins.repos"
 PLUGINS_TRASH_DIR="plugins.trash"
 
-PKG_BASE_DIR="pkg"
-PKG_REPO_DIR="pkg/repos"
-PKG_TRASH_DIR="pkg/trash"
-PKG_INSTALL_DIR="pkg/installed"
+PKG_BASE_DIR="pkgs"
+PKG_REPO_DIR="pkgs/repos"
+PKG_TRASH_DIR="pkgs/trash"
+PKG_INSTALL_DIR="pkgs/installed"
 
 class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
@@ -56,7 +56,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def __refresh_central_repo_object(self):
         try:
-            with open(path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
+            with open(path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
                 self.central_repo = json.load(f)
         except:
             print("Error opening repo.json")
@@ -104,18 +104,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return None
 
     def __get_pkg_repo_path(self, pkg_name):
-        for repo in os.listdir(PLUGINS_REPOS_DIR):
-            repo_path = path.join(PLUGINS_REPOS_DIR, repo)
-            repo_json_path = path.join(repo_path, "repository", "repo.json")
-            try:
-                with open(repo_json_path, 'r') as f:
-                    repo_json = json.loads(f.read())
-                    if repo_json["name"] == pkg_name:
-                        print(repo_path)
-                        return repo_path
-                    continue
-            except:
-                continue 
+        for pkg in os.listdir(PKG_INSTALL_DIR):
+            if pkgo == pkg_name:
+                return path.join(PKG_INSTALL_DIR, pkg)
         return None
 
     def __get_pkg_requirements_path(self, pkg_name):
@@ -188,11 +179,14 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return results
 
     def update_central_repo(self):
-        central_repo_path = path.join(PLUGINS_REPOS_DIR, CENTRAL_REPO_DIR)
+        if not path.exists(PKG_REPO_DIR):
+            os.makedirs(PKG_REPO_DIR)
+
+        central_repo_path = path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR)
         f = TemporaryFile()
         if not path.exists(central_repo_path):
-            args = [self.git_bin, "clone", CENTRAL_REPO_URL]
-            p = subprocess.Popen(args, cwd=PLUGINS_REPOS_DIR, stdout=f, stderr=f)
+            args = [self.git_bin, "clone", CENTRAL_REPO_URL, CENTRAL_REPO_DIR]
+            p = subprocess.Popen(args, cwd=PKG_REPO_DIR, stdout=f, stderr=f)
             p.wait()
         else:
             args = [self.git_bin, "reset", "--hard"]
