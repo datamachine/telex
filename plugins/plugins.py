@@ -55,9 +55,17 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         self.plugin_manager.collectPlugins()
         return "Plugins reloaded"
 
+    def __plugin_sort_key(self, plugin):
+        if plugin.plugin_object.is_activated:
+            return "0{}".format(plugin.name)
+        else:
+            return "1{}".format(plugin.name)
+            
+
     def list_plugins(self):
         text = ""
-        for plugin in self.plugin_manager.getAllPlugins():
+        plugins = sorted(self.plugin_manager.getAllPlugins(), key=self.__plugin_sort_key)
+        for plugin in plugins:
             text += "{0}: {1}\n".format(
                 CHECK_BOX if plugin.plugin_object.is_activated else NO_ENTRY, plugin.name)
 
