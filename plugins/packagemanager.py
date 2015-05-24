@@ -66,7 +66,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             self.__refresh_central_repo_object()
 
     def run(self, msg, matches):
-        if not admin_check(msg):
+        if not self.bot.admin_check(msg):
             return None
         command = matches.group(1)
         if command == "install":
