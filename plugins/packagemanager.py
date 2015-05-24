@@ -17,9 +17,6 @@ from tempfile import TemporaryFile
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
 CENTRAL_REPO_DIR="main"
 
-PLUGINS_REPOS_DIR="plugins.repos"
-PLUGINS_TRASH_DIR="plugins.trash"
-
 PKG_BASE_DIR="pkgs"
 PKG_REPO_DIR="pkgs/repos"
 PKG_TRASH_DIR="pkgs/trash"
@@ -62,10 +59,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             print("Error opening repo.json")
 
     def activate_plugin(self):
-        if not path.exists(PLUGINS_REPOS_DIR):
-            os.makedirs(PLUGINS_REPOS_DIR)
-        if PLUGINS_REPOS_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
-            self.plugin_manager.updatePluginPlaces([PLUGINS_REPOS_DIR])
+        if not path.exists(PKG_BASE_DIR):
+            os.makedirs(PKG_BASE_DIR)
+        if PKG_INSTALL_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
+            self.plugin_manager.updatePluginPlaces([PKG_INSTALL_DIR])
             self.reload_plugins()
         else:
             self.__refresh_central_repo_object()
@@ -105,7 +102,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def __get_pkg_repo_path(self, pkg_name):
         for pkg in os.listdir(PKG_INSTALL_DIR):
-            if pkgo == pkg_name:
+            if pkg == pkg_name:
                 return path.join(PKG_INSTALL_DIR, pkg)
         return None
 
