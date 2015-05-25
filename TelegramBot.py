@@ -101,7 +101,7 @@ class TelegramBot:
                             if type(func) is str:
                                 func = getattr(plugin_info.plugin_object, func)
                             if not func:
-                                func = plugin_info.plugin_object.run(msg, matches)
+                                func = plugin_info.plugin_object.run
                             reply = func(msg, matches)
                             if reply is not None:
                                 peer.send_msg(reply)
