@@ -93,14 +93,27 @@ class TelegramBot:
 
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
-            for pattern in plugin_info.plugin_object.patterns:
-                if plugin_info.plugin_object.is_activated and msg.text is not None:
-                    matches = re.search(pattern, msg.text)
-                    if matches is not None:
-                        reply = plugin_info.plugin_object.run(msg, matches)
+            if type(plugin_info.plugin_object.patterns) is dict:
+                for pattern, func in plugin_info.plugin_object.patterns.items():
+                    if plugin_info.plugin_object.is_activated and msg.text is not None:
+                        matches = re.search(pattern, msg.text)
+                        if matches is not None:
+                            if type(func) is str:
+                                func = getattr(plugin_info.plugin_object, func)
+                            if not func:
+                                func = plugin_info.plugin_object.run(msg, matches)
+                            reply = func(msg, matches)
+                            if reply is not None:
+                                peer.send_msg(reply)
+            elif  type(plugin_info.plugin_object.patterns) is list:
+                for pattern in plugin_info.plugin_object.patterns:
+                    if plugin_info.plugin_object.is_activated and msg.text is not None:
+                        matches = re.search(pattern, msg.text)
+                        if matches is not None:
+                            reply = plugin_info.plugin_object.run(msg, matches)
 
-                        if reply is not None:
-                            peer.send_msg(reply)
+                            if reply is not None:
+                                peer.send_msg(reply)
 
         tgl.mark_read(peer)
 

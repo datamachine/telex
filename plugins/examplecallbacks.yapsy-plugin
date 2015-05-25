@@ -1,0 +1,9 @@
+[Core]
+Name = ExampleCallbacks
+Module = examplecallbacks
+
+[Documentation]
+Author = Phillip Lopo
+Version = 0.1
+Website = https://github.com/datamachine/telegram-pybot
+Description = Just print the contents of the command
