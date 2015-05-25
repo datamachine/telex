@@ -26,13 +26,13 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
     telegram-pybot's plugin package manager
     """
-    patterns = [
-        "^!pkg? (search) (.*)$",
-        "^!pkg? (install) (.*)$",
-        "^!pkg? (update)$",
-        "^!pkg? (uninstall) ([\w_.-]+)$",
-        "^!pkg? (list)$",
-    ]
+    patterns = {
+        "^!pkg? (search) (.*)$": "search",
+        "^!pkg? (install) (.*)$": "install",
+        "^!pkg? (update)$": "update",
+        "^!pkg? (uninstall) ([\w_.-]+)$": "uninstall",
+        "^!pkg? (list)$": "list_installed",
+    }
 
     usage = [
         "!pkg search <query>: Search the repo for plugins",
@@ -66,25 +66,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             self.reload_plugins()
         else:
             self.__refresh_central_repo_object()
-
-    def run(self, msg, matches):
-        if not self.bot.admin_check(msg):
-            return None
-        command = matches.group(1)
-        if command == "install":
-            return self.install_plugin(matches)
-
-        if command == "uninstall":
-            return self.uninstall_plugin(matches)
-
-        if command == "search":
-            return self.search_plugins(matches.group(2))
-
-        if command == "update":
-            return self.update_central_repo()
-
-        if command == "list":
-            return self.get_installed()
 
     def __clone_repository(self, url, dst_dir):
             fp = TemporaryFile(mode="r")
@@ -122,7 +103,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             pass
         return None
     
-    def install_plugin(self, matches):
+    def install(self, msg, matches):
         if not path.exists(PKG_INSTALL_DIR):
             os.makedirs(PKG_INSTALL_DIR)
 
@@ -152,7 +133,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
  
         return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
 
-    def uninstall_plugin(self, matches):
+    def uninstall(self, msg, matches):
         pkg_name = matches.group(2)
         for pkg in os.listdir(PKG_INSTALL_DIR):
             if pkg != pkg_name:
@@ -167,7 +148,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             return "Uninstalled plugin: {}".format(pkg_name)
         return "Unable to find plugin: {}".format(pkg_name)
 
-    def search_plugins(self, query):
+    def search(self, msg, matches):
+        query = matches.group(2)
         prog = re.compile(query, flags=re.IGNORECASE)
         results = ""
         for pkg in self.central_repo["packages"]:
@@ -175,7 +157,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
 
-    def update_central_repo(self):
+    def update(self, msg, matches):
         if not path.exists(PKG_REPO_DIR):
             os.makedirs(PKG_REPO_DIR)
 
@@ -196,7 +178,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         f.seek(0)
         return f.read().decode('utf-8')
 
-    def get_installed(self):
+    def list_installed(self, msg, matches):
         pkgs = ""
         for f in os.listdir(PKG_INSTALL_DIR):
             repo_path = os.path.join(PKG_INSTALL_DIR, f)
