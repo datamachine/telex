@@ -30,6 +30,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "^!pkg? (search) (.*)$": "search",
         "^!pkg? (install) (.*)$": "install",
         "^!pkg? (update)$": "update",
+        "^!pkg? upgrade$": "upgrade_all",
+        "^!pkg? upgrade (.*)$": "upgrade_pkg",
         "^!pkg? (uninstall) ([\w_.-]+)$": "uninstall",
         "^!pkg? (list)$": "list_installed",
     }
@@ -68,12 +70,25 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             self.__refresh_central_repo_object()
 
     def __clone_repository(self, url, dst_dir):
-            fp = TemporaryFile(mode="r")
-            args = [self.git_bin, "clone", url, dst_dir]
-            p = subprocess.Popen(args, cwd=PKG_INSTALL_DIR, stdout=fp, stderr=fp)
-            code = p.wait()
-            fp.seek(0)
-            return (code, fp.read())
+        fp = TemporaryFile(mode="r")
+        args = [self.git_bin, "clone", url, dst_dir]
+        p = subprocess.Popen(args, cwd=PKG_INSTALL_DIR, stdout=fp, stderr=fp)
+        code = p.wait()
+        fp.seek(0)
+        return (code, fp.read())
+
+    def __upgrade_pkg(self, pkg_name):
+        args = [self.git_bin, "pull"]
+        pkg_path = path.join(PKG_INSTALL_DIR, pkg_name)
+
+        if not path.exists(pkg_path):
+            return ""
+
+        fp = TemporaryFile(mode="r")
+        p = subprocess.Popen(args, cwd=pkg_path, stdout=fp, stderr=fp)
+        code = p.wait()
+        fp.seek(0)
+        return (code, fp.read())
 
     def __get_repo_pkg_data(self, pkg_name):
         for pkg in self.central_repo["packages"]:
@@ -132,6 +147,15 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         self.reload_plugins()
  
         return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
+
+    def upgrade_all(self, msg, matches):
+        for pkg_name in os.listdirs(PKG_INSTALL_DIR):
+            ret_msg += self.__upgrade_pkg(pkg_name)[1]
+            
+        return ret_msg
+
+    def upgrade_pkg(self, msg, matches):
+        return self.__upgrade_pkg(matches.group(1))[1]
 
     def uninstall(self, msg, matches):
         pkg_name = matches.group(2)
