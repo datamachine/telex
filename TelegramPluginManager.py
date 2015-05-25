@@ -57,5 +57,19 @@ class TelegramPluginManager(ConfigurablePluginManager):
             return plugin_object
         
         return None
+
+    def reloadPlugins(self):
+        """
+        # a bug in python 3.4 prevents reload from working
+        import sys
+        import importlib
+        for module in sys.modules:
+            if module.startswith("yapsy_loaded_plugin_"):
+                print(sys.modules[module])
+                importlib.reload(sys.modules[module])
+        """
+        RELOAD_FILE="reload"
+        with open(RELOAD_FILE, "w") as f:
+            f.write("reload\n")
     
         

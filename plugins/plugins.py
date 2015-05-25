@@ -52,7 +52,7 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return "Error disabling plugin: {}".format(matches.group(2))
  
     def reload_plugins(self):
-        self.plugin_manager.collectPlugins()
+        self.plugin_manager.reloadPlugins()
         return "Plugins reloaded"
 
     def __plugin_sort_key(self, plugin):
