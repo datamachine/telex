@@ -31,8 +31,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "^!pkg? (install) (.*)$": "install",
         "^!pkg? (update)$": "update",
         "^!pkg? upgrade$": "upgrade_all",
-        "^!pkg? upgrade (.*)$": "upgrade_pkg",
-        "^!pkg? (uninstall) ([\w_.-]+)$": "uninstall",
+        "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
+        "^!pkg? (uninstall) ([\w-]+)$": "uninstall",
         "^!pkg? (list)$": "list_installed",
     }
 
@@ -82,7 +82,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         pkg_path = path.join(PKG_INSTALL_DIR, pkg_name)
 
         if not path.exists(pkg_path):
-            return ""
+            return (None, "'{}' does not exist".format(pkg_path))
 
         fp = TemporaryFile(mode="r")
         p = subprocess.Popen(args, cwd=pkg_path, stdout=fp, stderr=fp)
@@ -149,13 +149,15 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
 
     def upgrade_all(self, msg, matches):
-        for pkg_name in os.listdirs(PKG_INSTALL_DIR):
-            ret_msg += self.__upgrade_pkg(pkg_name)[1]
+        ret_msg = ""
+        for pkg_name in os.listdir(PKG_INSTALL_DIR):
+            ret_msg += "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1].strip())
             
         return ret_msg
 
     def upgrade_pkg(self, msg, matches):
-        return self.__upgrade_pkg(matches.group(1))[1]
+        pkg_name = matches.group(1)
+        return "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1])
 
     def uninstall(self, msg, matches):
         pkg_name = matches.group(2)
