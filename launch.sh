@@ -29,6 +29,9 @@ install() {
     then echo "Error. Exiting."; exit $RET;
   fi
   cd ..
+  if [ ! -e "plugins.conf" ]; then
+    cp plugins.conf.example plugins.conf
+  fi
   install_virtualenv
   install_packages
 }
