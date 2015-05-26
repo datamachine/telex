@@ -117,7 +117,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         except:
             pass
         return None
-    
+
     def install(self, msg, matches):
         if not path.exists(PKG_INSTALL_DIR):
             os.makedirs(PKG_INSTALL_DIR)
@@ -143,9 +143,12 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             if pkg_req_path and os.path.exists(pkg_req_path):
                 pip.main(['install', '-r', pkg_req_path])
 
+            self.reload_plugins()
+            if "default_enable" in pkg:
+                for plugin_name in pkg["default_enable"]:
+                    self.plugin_manager.activatePluginByName(plugin_name)
 
             self.bot.get_peer_to_send(msg).send_msg("{}\nSuccessfully installed plugin: {}".format(status, plugin))
-        self.reload_plugins()
 
     def upgrade_all(self, msg, matches):
         ret_msg = ""
