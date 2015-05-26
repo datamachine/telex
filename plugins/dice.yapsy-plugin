@@ -1,9 +1,0 @@
-[Core]
-Name = Dice
-Module = dice
-
-[Documentation]
-Author = Vincent Castellano
-Version = 0.1
-Website = https://github.com/datamachine/telegram-pybot
-Description = Roll Dice!
