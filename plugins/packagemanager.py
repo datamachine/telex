@@ -54,6 +54,12 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
 
     def __refresh_central_repo_object(self):
+        central_repo_path = path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR)
+        f = TemporaryFile()
+        args = ["./generate_repo.py"]
+        p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
+        p.wait()
+
         try:
             with open(path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
                 self.central_repo = json.load(f)
