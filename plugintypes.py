@@ -1,5 +1,6 @@
 from yapsy.IPlugin import IPlugin
 
+
 class TelegramPlugin(IPlugin):
     def __init__(self):
         super().__init__()
@@ -36,4 +37,4 @@ class TelegramPlugin(IPlugin):
         raise NotImplementedError
 
     def pre_process(self, msg):
-        return msg
+        pass
