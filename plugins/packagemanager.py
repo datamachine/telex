@@ -32,7 +32,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "^!pkg? (update)$": "update",
         "^!pkg? upgrade$": "upgrade_all",
         "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
-        "^!pkg? (uninstall) ([\w-]+)$": "uninstall",
+        "^!pkg? (uninstall) (.*)$": "uninstall",
         "^!pkg? (list)$": "list_installed",
     }
 
@@ -121,38 +121,36 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     def install(self, msg, matches):
         if not path.exists(PKG_INSTALL_DIR):
             os.makedirs(PKG_INSTALL_DIR)
+        for plugin in matches.group(2).split():
+            urldata = urlparse(matches.group(2))
 
-        plugin = matches.group(2)
-        urldata = urlparse(matches.group(2))
+            url = None
+            if urldata.scheme in [ "http", "https" ]:
+                url = plugin
+            else:
+                pkg = self.__get_repo_pkg_data(plugin)
+                if pkg:
+                    url = pkg["repo"]
 
-        url = None
-        if urldata.scheme in [ "http", "https" ]:
-            url = plugin
-        else:
-            pkg = self.__get_repo_pkg_data(plugin)
-            if pkg:
-                url = pkg["repo"]
+            if not url:
+                self.bot.get_peer_to_send(msg).send_msg("Invalid plugin or url: {}".format(plugin))
 
-        if not url:
-            return "Invalid plugin or url: {}".format(plugin)
+            code, status = self.__clone_repository(url, pkg["pkg_name"])
+            if code != 0:
+                self.bot.get_peer_to_send(msg).send_msg(status)
 
-        code, msg = self.__clone_repository(url, pkg["pkg_name"])
-        if code != 0:
-            return msg
+            pkg_req_path = self.__get_pkg_requirements_path(plugin)
+            if pkg_req_path and os.path.exists(pkg_req_path):
+                pip.main(['install', '-r', pkg_req_path])
 
-        pkg_req_path = self.__get_pkg_requirements_path(plugin)
-        if pkg_req_path and os.path.exists(pkg_req_path):
-            pip.main(['install', '-r', pkg_req_path])
 
+            self.bot.get_peer_to_send(msg).send_msg("{}\nSuccessfully installed plugin: {}".format(status, plugin))
         self.reload_plugins()
- 
-        return "{}\nSuccessfully installed plugin: {}".format(msg, plugin)
 
     def upgrade_all(self, msg, matches):
         ret_msg = ""
         for pkg_name in os.listdir(PKG_INSTALL_DIR):
             ret_msg += "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1].strip())
-            
         return ret_msg
 
     def upgrade_pkg(self, msg, matches):
@@ -160,19 +158,22 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1])
 
     def uninstall(self, msg, matches):
-        pkg_name = matches.group(2)
-        for pkg in os.listdir(PKG_INSTALL_DIR):
-            if pkg != pkg_name:
-                continue
+        for pkg_name in matches.group(2).split():
+            uninstalled = False
+            for pkg in os.listdir(PKG_INSTALL_DIR):
+                if pkg != pkg_name:
+                    continue
 
-            pkg_path = path.join(PKG_INSTALL_DIR, pkg)
+                pkg_path = path.join(PKG_INSTALL_DIR, pkg)
 
-            trash_name = "{}.{}".format(path.basename(pkg_path), str(uuid.uuid4()))
-            trash_path = path.join(PKG_TRASH_DIR, trash_name)
-            shutil.move(pkg_path, trash_path)
+                trash_name = "{}.{}".format(path.basename(pkg_path), str(uuid.uuid4()))
+                trash_path = path.join(PKG_TRASH_DIR, trash_name)
+                shutil.move(pkg_path, trash_path)
 
-            return "Uninstalled plugin: {}".format(pkg_name)
-        return "Unable to find plugin: {}".format(pkg_name)
+                self.bot.get_peer_to_send(msg).send_msg("Uninstalled plugin: {}".format(pkg_name))
+                uninstalled = True
+            if not uninstalled:
+                self.bot.get_peer_to_send(msg).send_msg("Unable to find plugin: {}".format(pkg_name))
 
     def search(self, msg, matches):
         query = matches.group(2)
