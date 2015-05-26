@@ -34,6 +34,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
         "^!pkg? (uninstall) (.*)$": "uninstall",
         "^!pkg? (list)$": "list_installed",
+        "^!pkg? (list_all)$": "list_all",
     }
 
     usage = [
@@ -43,6 +44,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "!pkg install <package name>: Install a package",
         "!pkg uninstall <package name>: Uninstall a package",
         "!pkg list: List installed packages"
+        "!pkg list_all: List packages in the repo"
     ]
 
     @property
@@ -213,6 +215,12 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         self.__refresh_central_repo_object()
         f.seek(0)
         return f.read().decode('utf-8')
+
+    def list_all(self, msg, matches):
+        results = ""
+        for pkg in self.central_repo["packages"]:
+            results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
+        return results
 
     def list_installed(self, msg, matches):
         pkgs = ""
