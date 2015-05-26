@@ -58,13 +58,15 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
     def pre_process(self, msg):
         if not hasattr(msg, 'text'): #TODO support media
-          return
+            return
         if hasattr(msg.src, 'username'):
             username = msg.src.username
+        else:
+            username = ""
         self.insert(msg_id=msg.id, timestamp=msg.date,
                     uid=msg.src.id, username=username,
-                    full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or '',
-                    chat_id=msg.dest.id, message=msg.text))
+                    full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or ''),
+                    chat_id=msg.dest.id, message=msg.text)
 
     def history_cb(self, msg_count, chat, success, msgs):
         if success:

@@ -55,7 +55,6 @@ class DatabaseMixin():
                 columns=", ".join(columns),
                 values=parameters
             )
-            #logging.debug(sql)
             cur.execute(sql, values)
             self.conn.commit()
         except sqlite3.Error as e:
