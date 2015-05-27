@@ -24,14 +24,16 @@ class GetDefaultRepoDirnameTest(unittest.TestCase):
 class CloneTest(unittest.TestCase):
     def test_clone_to_empty_with_default_name(self):
         with TemporaryDirectory() as d:
-            gs = git.clone(cwd=d, repository=REPO_URL, directory=None)
+            # clone into sdefault directory
+            gs = git.clone(REPO_URL, cwd=d, directory=None)
             self.assertIsNotNone(gs)
             self.assertTrue(exists(join(d, REPO_DEFAULT_NAME, ".git")))
             self.assertEqual(gs.exit_status, 0)
         
     def test_clone_to_empty_with_name(self):
         with TemporaryDirectory() as d:
-            gs = git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
+            # clone into specified directory
+            gs = git.clone(REPO_URL, cwd=d, directory=REPO_NAME)
             self.assertIsNotNone(gs)
             self.assertTrue(exists(join(d, REPO_NAME, ".git")))
             self.assertEqual(gs.exit_status, 0)
@@ -39,7 +41,13 @@ class CloneTest(unittest.TestCase):
 class PullTest(unittest.TestCase):
     def test_pull_up_to_date(self):
         with TemporaryDirectory() as d:
-            git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
+            # clone repo
+            gs = git.clone(REPO_URL, cwd=d, directory=REPO_NAME)
+            self.assertIsNotNone(gs)
+            self.assertTrue(exists(join(d, REPO_NAME, ".git")))
+            self.assertEqual(gs.exit_status, 0)
+
+            # pull while on latest revision
             gs = git.pull(cwd=join(d, REPO_NAME))
             self.assertIsNotNone(gs)
             self.assertEqual(gs.exit_status, 0)
@@ -47,7 +55,7 @@ class PullTest(unittest.TestCase):
     def test_pull_out_of_date(self):
         with TemporaryDirectory() as d:
             # Clone a repo
-            gs = git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
+            gs = git.clone(REPO_URL, cwd=d, directory=REPO_NAME)
             self.assertIsNotNone(gs)
             self.assertEqual(gs.exit_status, 0)
 
