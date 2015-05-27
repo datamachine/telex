@@ -237,15 +237,17 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
         gs = None
         if repo_name not in self.__get_installed_repos():
-            gs = git.clone(cwd=PKG_REPO_DIR, repository=url, directory=repo_name)
+            gs = git.clone(url, directory=repo_name, cwd=PKG_REPO_DIR)
         else:
             repo_path = path.join(PKG_REPO_DIR, repo_name)
             git.reset(cwd=repo_path, hard=True)
-            git.pull(cwd=repo_path)
-            resp = self.__pull_repository(repo_name)
+            gs=git.pull(cwd=repo_path)
 
-        if not resp or resp.code != 0:
-            return "Error updating repo" 
+        if not gs:
+            return "Error updating repo"
+
+        if not gs.success():
+            return "stdout:\n{}\nstderr:\n{}".format(gs.stdout, gs.stderr)
 
         repo_obj = self.__load_repo_object(repo_name)
         if not repo_obj:
@@ -253,7 +255,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
         self.repos[repo_name] = repo_obj
 
-        return resp.msg
+        return "{}: {}{}".format(repo_name, gs.stdout, gs.stderr)
 
     def list_all(self, msg, matches):
         results = ""
