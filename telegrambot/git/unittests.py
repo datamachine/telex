@@ -1,6 +1,6 @@
 import unittest
 from tempfile import TemporaryDirectory
-from os import path
+from os.path import join, exists
 from urllib.parse import urlparse
 
 import telegrambot.git as git
@@ -26,18 +26,41 @@ class CloneTest(unittest.TestCase):
         with TemporaryDirectory() as d:
             gs = git.clone(cwd=d, repository=REPO_URL, directory=None)
             self.assertIsNotNone(gs)
-            self.assertTrue(path.exists(path.join(d, REPO_DEFAULT_NAME, ".git")))
+            self.assertTrue(exists(join(d, REPO_DEFAULT_NAME, ".git")))
             self.assertEqual(gs.exit_status, 0)
         
     def test_clone_to_empty_with_name(self):
         with TemporaryDirectory() as d:
             gs = git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
             self.assertIsNotNone(gs)
-            self.assertTrue(path.exists(path.join(d, REPO_NAME, ".git")))
+            self.assertTrue(exists(join(d, REPO_NAME, ".git")))
             self.assertEqual(gs.exit_status, 0)
 
-            
+class PullTest(unittest.TestCase):
+    def test_pull_up_to_date(self):
+        with TemporaryDirectory() as d:
+            git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
+            gs = git.pull(cwd=join(d, REPO_NAME))
+            self.assertIsNotNone(gs)
+            self.assertEqual(gs.exit_status, 0)
         
+    def test_pull_out_of_date(self):
+        with TemporaryDirectory() as d:
+            gs = git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
+            print(gs.stdout)
+            print(gs.stderr)
+            gs = git.pull(cwd=join(d, REPO_NAME))
+            print(gs.stdout)
+            print(gs.stderr)
+            gs = git.reset(cwd=join(d, REPO_NAME), hard=True, commit="6f72f1ad1589f73d62165e19df873c59e829e1dd")
+            print(gs.stdout)
+            print(gs.stderr)
+            gs = git.pull(cwd=join(d, REPO_NAME))
+            print(gs.stdout)
+            print(gs.stderr)
+            self.assertIsNotNone(gs)
+            self.assertEqual(gs.exit_status, 0)
+
 if __name__ == "__main__":
     unittest.main()
 

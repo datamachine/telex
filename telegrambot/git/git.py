@@ -26,6 +26,9 @@ class GitStatus:
         self.stdout = stdout
         self.stderr = stderr
 
+    def success(self):
+        return self.exit_status == 0
+
 def clone(cwd, repository, directory):
     args = [GIT_BIN, "clone", "--", repository]
     if directory: args += [directory]
@@ -40,3 +43,30 @@ def clone(cwd, repository, directory):
         return GitStatus(status, outf.read().decode('utf-8'), errf.read().decode('utf-8'))
     return None
 
+def reset(cwd, hard=False, commit=None):
+    args = [GIT_BIN, "reset"]
+    if hard: args += ["--hard"]
+    if commit: args += [commit]
+
+    with TemporaryFile() as outf, TemporaryFile() as errf:
+        p = Popen(args, cwd=cwd, stdout=outf, stderr=errf)
+        status = p.wait()
+
+        outf.seek(0)
+        errf.seek(0)
+
+        return GitStatus(status, outf.read().decode('utf-8'), errf.read().decode('utf-8'))
+    return None
+
+def pull(cwd):
+    args = [GIT_BIN, "pull"]
+
+    with TemporaryFile() as outf, TemporaryFile() as errf:
+        p = Popen(args, cwd=cwd, stdout=outf, stderr=errf)
+        status = p.wait()
+
+        outf.seek(0)
+        errf.seek(0)
+
+        return GitStatus(status, outf.read().decode('utf-8'), errf.read().decode('utf-8'))
+    return None
