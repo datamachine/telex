@@ -65,24 +65,16 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "!pkg list_all: List packages in the repo"
     ]
 
-    def __repo_none_msg(self, repo_name):
-        return "Repository \"{}\" not found. Try running \"!pkg update\"".format(repo_name)
-
-    def __get_installed_repos(self):
+    def _installed_repos(self):
         if path.exists(PKG_REPO_DIR):
             return os.listdir(PKG_REPO_DIR)
         return []
 
-    def __get_repo_path(self, repo_name):
-        if repo_name not in self.__get_installed_repos():
-            return None
+    def _repo_path(self, repo_name):
         return path.join(PKG_REPO_DIR, repo_name)
 
     def __load_repo_object(self, repo_name):
-        repo_path = self.__get_repo_path(repo_name)
-        if not repo_path:
-            return None
-
+        repo_path = self._repo_path(repo_name)
         try:
             with open(path.join(repo_path, "repo.json"), "r") as f:
                 data = json.load(f)
@@ -236,10 +228,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             os.makedirs(PKG_REPO_DIR)
 
         gs = None
-        if repo_name not in self.__get_installed_repos():
+        if repo_name not in self._installed_repos():
             gs = git.clone(url, directory=repo_name, cwd=PKG_REPO_DIR)
         else:
-            repo_path = path.join(PKG_REPO_DIR, repo_name)
+            repo_path = self._repo_path(repo_name)
             git.reset(cwd=repo_path, hard=True)
             gs=git.pull(cwd=repo_path)
 
