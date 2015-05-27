@@ -9,3 +9,4 @@ telegram-bot.conf
 plugins.repos
 plugins.trash
 pkgs
+*.swp
