@@ -33,6 +33,10 @@ class RepoObject:
         self.name = name
         self.data = data
 
+    @property
+    def packages(self):
+        return self.data["packages"]
+
 
 class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
@@ -266,13 +270,16 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 self.bot.get_peer_to_send(msg).send_msg("Unable to find plugin: {}".format(pkg_name))
 
     def search(self, msg, matches):
-        if not self.central_repo:
-            return self.__repo_none_msg(CENTRAL_REPO_NAME)
+        repo_name = CENTRAL_REPO_NAME
+        if repo_name not in self.repos.keys():
+            return "Repo not in cache. Try \"!pkg update {}\"".format(repo_name)
+
+        repo = self.repos[repo_name]
 
         query = matches.group(2)
         prog = re.compile(query, flags=re.IGNORECASE)
         results = ""
-        for pkg in self.central_repo["packages"]:
+        for pkg in repo.packages:
             if prog.search(pkg["name"]) or prog.search(pkg["description"]):
                 results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
