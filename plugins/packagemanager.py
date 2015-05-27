@@ -4,6 +4,7 @@ import subprocess
 import uuid
 import shutil
 import re
+import sys
 
 import os
 from os import path
@@ -15,12 +16,23 @@ from urllib.parse import urlparse
 from tempfile import TemporaryFile
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
-CENTRAL_REPO_DIR="main"
+CENTRAL_REPO_NAME="main"
 
 PKG_BASE_DIR="pkgs"
 PKG_REPO_DIR="pkgs/repos"
 PKG_TRASH_DIR="pkgs/trash"
 PKG_INSTALL_DIR="pkgs/installed"
+
+class GitResponse:
+    def __init__(self, code, msg):
+        self.code = code
+        self.msg = msg
+
+class RepoObject:
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
+
 
 class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
@@ -53,38 +65,105 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             self.write_option("git_bin", "/usr/bin/git")
         return self.read_option("git_bin")
 
+    def __repo_none_msg(self, repo_name):
+        return "Repository \"{}\" not found. Try running \"!pkg update\"".format(repo_name)
 
+    def __git_clone(self, cwd, repository, directory, branch=None, recursive=None):
+        args = [self.git_bin, "clone"]
+        if branch: args += ["--branch", branch]
+        if recursive: args += ["--recursive"]
+        args += ["--", repository, directory]
 
-    def __refresh_central_repo_object(self):
-        central_repo_path = path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR)
+        f = TemporaryFile()           
+        p = subprocess.Popen(args, cwd=cwd, stdout=f, stderr=f)
+        code = p.wait()
+
+        f.seek(0)
+        return GitResponse(code, f.read().decode('utf-8'))
+
+    def __git_pull(self, cwd):
+        args = [self.git_bin, "pull"]
+
         f = TemporaryFile()
-        args = ["./generate_repo.py"]
-        p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
-        p.wait()
+        p = subprocess.Popen(args, cwd=cwd, stdout=f, stderr=f)
+        code = p.wait()
+
+        f.seek(0)
+        return GitResponse(code, f.read().decode('utf-8'))
+
+    def __git_reset(self, cwd, hard=False):
+        args = [self.git_bin, "reset"]
+        if hard: args += ["--hard"]
+
+        f = TemporaryFile()
+        p = subprocess.Popen(args, cwd=cwd, stdout=f, stderr=f)
+        code = p.wait()
+
+        f.seek(0)
+        return GitResponse(code, f.read().decode('utf-8'))
+
+    def __get_installed_repos(self):
+        if path.exists(PKG_REPO_DIR):
+            return os.listdir(PKG_REPO_DIR)
+        return []
+
+    def __get_repo_path(self, repo_name):
+        if repo_name not in self.__get_installed_repos():
+            return None
+        return path.join(PKG_REPO_DIR, repo_name)
+
+    def __clone_repository(self, repo_name, url):
+        if not path.exists(PKG_REPO_DIR):
+            os.makedirs(PKG_REPO_DIR)
+
+        return self.__git_clone(cwd=PKG_REPO_DIR, repository=url, directory=repo_name)
+
+    def __reset_repository(self, repo_name):
+        repo_path = self.__get_repo_path(repo_name)
+        if repo_path:
+            return self.__git_reset(cwd=repo_path, hard=True)
+        return None
+
+    def __pull_repository(self, repo_name):
+        repo_path = self.__get_repo_path(repo_name)
+        if not repo_path:
+            return None
+        return self.__git_pull(repo_path)
+
+    def __load_repo_object(self, repo_name):
+        repo_path = self.__get_repo_path(repo_name)
+        if not repo_path:
+            return None
 
         try:
-            with open(path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR, "repo.json"), "r") as f:
-                self.central_repo = json.load(f)
+            with open(path.join(repo_path, "repo.json"), "r") as f:
+                data = json.load(f)
+                return RepoObject(repo_name, data)
         except:
-            print("Error opening repo.json")
+            print(sys.exc_info()[0])
+
+        return None
+        
+    def __reload_central_repo_object(self, repo_name=CENTRAL_REPO_NAME):
+        try:
+            with open(path.join(PKG_REPO_DIR, CENTRAL_REPO_NAME, "repo.json"), "r") as f:
+                self.central_repo = json.load(f)
+                return True
+        except:
+            print(sys.exc_info()[0])
+        return False
 
     def activate_plugin(self):
+        self.central_repo = None
+        self.repos = {}
         if not path.exists(PKG_BASE_DIR):
             os.makedirs(PKG_BASE_DIR)
         if PKG_INSTALL_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
             self.plugin_manager.updatePluginPlaces([PKG_INSTALL_DIR])
             self.reload_plugins()
         else:
-            self.__refresh_central_repo_object()
-
-    def __clone_repository(self, url, dst_dir):
-        fp = TemporaryFile(mode="r")
-        args = [self.git_bin, "clone", url, dst_dir]
-        p = subprocess.Popen(args, cwd=PKG_INSTALL_DIR, stdout=fp, stderr=fp)
-        code = p.wait()
-        fp.seek(0)
-        return (code, fp.read())
-
+            self.__reload_central_repo_object()
+            
     def __upgrade_pkg(self, pkg_name):
         args = [self.git_bin, "pull"]
         pkg_path = path.join(PKG_INSTALL_DIR, pkg_name)
@@ -187,6 +266,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 self.bot.get_peer_to_send(msg).send_msg("Unable to find plugin: {}".format(pkg_name))
 
     def search(self, msg, matches):
+        if not self.central_repo:
+            return self.__repo_none_msg(CENTRAL_REPO_NAME)
+
         query = matches.group(2)
         prog = re.compile(query, flags=re.IGNORECASE)
         results = ""
@@ -196,25 +278,29 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return results
 
     def update(self, msg, matches):
+        repo_name = CENTRAL_REPO_NAME
+        url = CENTRAL_REPO_URL
+
         if not path.exists(PKG_REPO_DIR):
             os.makedirs(PKG_REPO_DIR)
 
-        central_repo_path = path.join(PKG_REPO_DIR, CENTRAL_REPO_DIR)
-        f = TemporaryFile()
-        if not path.exists(central_repo_path):
-            args = [self.git_bin, "clone", CENTRAL_REPO_URL, CENTRAL_REPO_DIR]
-            p = subprocess.Popen(args, cwd=PKG_REPO_DIR, stdout=f, stderr=f)
-            p.wait()
+        resp = None
+        if repo_name not in self.__get_installed_repos():
+            resp = self.__clone_repository(repo_name, url)
         else:
-            args = [self.git_bin, "reset", "--hard"]
-            p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
-            p.wait()
-            args = [self.git_bin, "pull"]
-            p = subprocess.Popen(args, cwd=central_repo_path, stdout=f, stderr=f)
-            p.wait()
-        self.__refresh_central_repo_object()
-        f.seek(0)
-        return f.read().decode('utf-8')
+            self.__reset_repository(repo_name)
+            resp = self.__pull_repository(repo_name)
+
+        if not resp or resp.code != 0:
+            return "Error updating repo" 
+
+        repo_obj = self.__load_repo_object(repo_name)
+        if not repo_obj:
+            return "Error updating repo:\n{}".format(resp.msg)
+
+        self.repos[repo_name] = repo_obj
+
+        return resp.msg
 
     def list_all(self, msg, matches):
         results = ""
@@ -223,6 +309,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return results
 
     def list_installed(self, msg, matches):
+        if not path.exists(PKG_INSTALL_DIR):
+            return "There are no packages installed"
+
         pkgs = ""
         for f in os.listdir(PKG_INSTALL_DIR):
             repo_path = os.path.join(PKG_INSTALL_DIR, f)
