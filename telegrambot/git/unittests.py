@@ -46,18 +46,18 @@ class PullTest(unittest.TestCase):
         
     def test_pull_out_of_date(self):
         with TemporaryDirectory() as d:
+            # Clone a repo
             gs = git.clone(cwd=d, repository=REPO_URL, directory=REPO_NAME)
-            print(gs.stdout)
-            print(gs.stderr)
-            gs = git.pull(cwd=join(d, REPO_NAME))
-            print(gs.stdout)
-            print(gs.stderr)
+            self.assertIsNotNone(gs)
+            self.assertEqual(gs.exit_status, 0)
+
+            # Revert to the initial commit
             gs = git.reset(cwd=join(d, REPO_NAME), hard=True, commit="6f72f1ad1589f73d62165e19df873c59e829e1dd")
-            print(gs.stdout)
-            print(gs.stderr)
+            self.assertIsNotNone(gs)
+            self.assertEqual(gs.exit_status, 0)
+
+            # Use pull to get update to the latest commit
             gs = git.pull(cwd=join(d, REPO_NAME))
-            print(gs.stdout)
-            print(gs.stderr)
             self.assertIsNotNone(gs)
             self.assertEqual(gs.exit_status, 0)
 
