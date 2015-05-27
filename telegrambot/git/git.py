@@ -29,12 +29,15 @@ class GitStatus:
     def success(self):
         return self.exit_status == 0
 
-def clone(cwd, repository, directory):
+def clone(repository, directory=None, cwd=None):
     args = [GIT_BIN, "clone", "--", repository]
     if directory: args += [directory]
-
+    
     with TemporaryFile() as outf, TemporaryFile() as errf:
-        p = Popen(args, cwd=cwd, stdout=outf, stderr=errf)
+        popen_args = dict(stdout=outf, stderr=errf)
+        if cwd:
+            popen_args["cwd"] = cwd
+        p = Popen(args, **popen_args)
         status = p.wait()
 
         outf.seek(0)

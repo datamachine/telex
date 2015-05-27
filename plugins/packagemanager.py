@@ -15,6 +15,8 @@ from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
 
+from telegrambot import git
+
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
 CENTRAL_REPO_NAME="main"
 
@@ -63,48 +65,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "!pkg list_all: List packages in the repo"
     ]
 
-    @property
-    def git_bin(self):
-        if not self.has_option("git_bin"):
-            self.write_option("git_bin", "/usr/bin/git")
-        return self.read_option("git_bin")
-
     def __repo_none_msg(self, repo_name):
         return "Repository \"{}\" not found. Try running \"!pkg update\"".format(repo_name)
-
-    def __git_clone(self, cwd, repository, directory, branch=None, recursive=None):
-        args = [self.git_bin, "clone"]
-        if branch: args += ["--branch", branch]
-        if recursive: args += ["--recursive"]
-        args += ["--", repository, directory]
-
-        f = TemporaryFile()           
-        p = subprocess.Popen(args, cwd=cwd, stdout=f, stderr=f)
-        code = p.wait()
-
-        f.seek(0)
-        return GitResponse(code, f.read().decode('utf-8'))
-
-    def __git_pull(self, cwd):
-        args = [self.git_bin, "pull"]
-
-        f = TemporaryFile()
-        p = subprocess.Popen(args, cwd=cwd, stdout=f, stderr=f)
-        code = p.wait()
-
-        f.seek(0)
-        return GitResponse(code, f.read().decode('utf-8'))
-
-    def __git_reset(self, cwd, hard=False):
-        args = [self.git_bin, "reset"]
-        if hard: args += ["--hard"]
-
-        f = TemporaryFile()
-        p = subprocess.Popen(args, cwd=cwd, stdout=f, stderr=f)
-        code = p.wait()
-
-        f.seek(0)
-        return GitResponse(code, f.read().decode('utf-8'))
 
     def __get_installed_repos(self):
         if path.exists(PKG_REPO_DIR):
@@ -115,24 +77,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if repo_name not in self.__get_installed_repos():
             return None
         return path.join(PKG_REPO_DIR, repo_name)
-
-    def __clone_repository(self, repo_name, url):
-        if not path.exists(PKG_REPO_DIR):
-            os.makedirs(PKG_REPO_DIR)
-
-        return self.__git_clone(cwd=PKG_REPO_DIR, repository=url, directory=repo_name)
-
-    def __reset_repository(self, repo_name):
-        repo_path = self.__get_repo_path(repo_name)
-        if repo_path:
-            return self.__git_reset(cwd=repo_path, hard=True)
-        return None
-
-    def __pull_repository(self, repo_name):
-        repo_path = self.__get_repo_path(repo_name)
-        if not repo_path:
-            return None
-        return self.__git_pull(repo_path)
 
     def __load_repo_object(self, repo_name):
         repo_path = self.__get_repo_path(repo_name)
@@ -291,11 +235,13 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if not path.exists(PKG_REPO_DIR):
             os.makedirs(PKG_REPO_DIR)
 
-        resp = None
+        gs = None
         if repo_name not in self.__get_installed_repos():
-            resp = self.__clone_repository(repo_name, url)
+            gs = git.clone(cwd=PKG_REPO_DIR, repository=url, directory=repo_name)
         else:
-            self.__reset_repository(repo_name)
+            repo_path = path.join(PKG_REPO_DIR, repo_name)
+            git.reset(cwd=repo_path, hard=True)
+            git.pull(cwd=repo_path)
             resp = self.__pull_repository(repo_name)
 
         if not resp or resp.code != 0:
