@@ -70,7 +70,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 return json.load(f)
         except:
             print(sys.exc_info()[0])
-
         return None
         
     def __reload_central_repo_object(self, repo_name=CENTRAL_REPO_NAME):
