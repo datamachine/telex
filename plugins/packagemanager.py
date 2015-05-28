@@ -102,8 +102,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return self.repos.get(repo_name, None)
 
     def _pkg_data_from_repo(self, pkg_name, repo_name):
-        repo = self._get_repo(repo_name)
-        for pkg in repo.get("packages",[]):
+        for pkg in self.repos.get(repo_name, {}).get("packages",[]):
             if pkg["pkg_name"] == pkg_name:
                 return pkg
         return None
@@ -124,6 +123,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return None
 
     def install(self, msg, matches):
+        if not self.repos:
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
+
         repo_name = CENTRAL_REPO_NAME
 
         if not path.exists(PKG_INSTALL_DIR):
