@@ -68,6 +68,9 @@ class TelegramBot:
             return None
 
     # Callbacks
+    def on_loop(self):
+        pass
+
     def on_binlog_replay_end(self):
         self.binlog_done = True
 

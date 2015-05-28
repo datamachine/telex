@@ -9,9 +9,12 @@ class DatabaseMixin():
         if not hasattr(self, "schema"):
             raise DatabaseError("Missing Schema in plugin {0}".format(self.table_name))
 
-        self.conn = sqlite3.connect('data/data.sqlite')
-        self.conn.row_factory = DatabaseMixin.dict_factory
         self.create_schema()
+
+    def get_conn(self):
+        conn = sqlite3.connect('data/data.sqlite')
+        conn.row_factory = DatabaseMixin.dict_factory
+        return conn
 
     @staticmethod
     def dict_factory(cursor, row):
@@ -22,7 +25,8 @@ class DatabaseMixin():
 
     def create_schema(self):
         try:
-            cur = self.conn.cursor()
+            conn = self.get_conn()
+            cur = conn.cursor()
             cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (self.table_name,))
             if cur.fetchone() is None:
                 logging.debug("Initializing schema for {0}".format(self.table_name))
@@ -36,7 +40,7 @@ class DatabaseMixin():
 
                 sql = "CREATE TABLE {0}( {1} );".format(self.table_name, ", ".join(columns))
                 logging.debug(sql)
-                self.conn.execute(sql)
+                conn.execute(sql)
         except sqlite3.Error as e:
             logging.error("Error creating table for {0}: {1}".format(self.table_name, e.args[0]))
         finally:
@@ -44,7 +48,8 @@ class DatabaseMixin():
 
     def insert(self, **kwargs):
         try:
-            cur = self.conn.cursor()
+            conn = self.get_conn()
+            cur = conn.cursor()
             columns = kwargs.keys()
             parameters = ",".join(["?"] * len(columns))
             values = [str(v) for v in kwargs.values()]
@@ -56,7 +61,7 @@ class DatabaseMixin():
                 values=parameters
             )
             cur.execute(sql, values)
-            self.conn.commit()
+            conn.commit()
         except sqlite3.Error as e:
             logging.error("Error inserting into {0}: {1}".format(self.table_name, e.args[0]))
         finally:
@@ -64,7 +69,8 @@ class DatabaseMixin():
 
     def insert_many(self, columns, values):
         try:
-            cur = self.conn.cursor()
+            conn = self.get_conn()
+            cur = conn.cursor()
             parameters = ",".join(["?"] * len(columns))
 
             sql = "INSERT OR IGNORE INTO {table} ({columns}) VALUES ({values})".format(
@@ -74,7 +80,7 @@ class DatabaseMixin():
             )
             #logging.debug(sql)
             cur.executemany(sql, values)
-            self.conn.commit()
+            conn.commit()
         except sqlite3.Error as e:
             logging.error("Error inserting into {0}: {1}".format(self.table_name, e.args[0]))
         finally:
@@ -82,7 +88,8 @@ class DatabaseMixin():
 
     def select(self, **kwargs):
         try:
-            cur = self.conn.cursor()
+            self.get_conn()
+            cur = conn.cursor()
             sql = "SELECT  {columns} FROM {table} WHERE 1 {values}".format(
                 table=self.table_name,
                 columns=", ".join(kwargs.keys()),
@@ -98,13 +105,14 @@ class DatabaseMixin():
 
     def query(self, sql, parameters=None):
         try:
-            cur = self.conn.cursor()
+            conn = self.get_conn()
+            cur = conn.cursor()
             #logging.debug(sql)
             if parameters:
                 cur.execute(sql, parameters)
             else:
                 cur.execute(sql)
-            self.conn.commit()
+            conn.commit()
             return cur.fetchall()
         except sqlite3.Error as e:
             logging.error("Error selecting table {0}: {1}".format(self.table_name, e.args[0]))
