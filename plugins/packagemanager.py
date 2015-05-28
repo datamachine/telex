@@ -65,10 +65,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     def _repo_path(self, repo_name):
         return path.join(PKG_REPO_DIR, repo_name)
 
-    def __load_repo_object(self, repo_name):
-        repo_path = self._repo_path(repo_name)
+    def _load_repo_object(self, repo_name):
+        repo_file = Path(PKG_REPO_DIR) / repo_name / "repo.json"
         try:
-            with open(path.join(repo_path, "repo.json"), "r") as f:
+            with repo_file.open('r') as f:
                 return json.load(f)
         except:
             print(sys.exc_info()[0])
@@ -83,12 +83,14 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             print(sys.exc_info()[0])
         return False
 
-    def _reload_repos(self):
+    def _reload_repos(self, msg=None):
         self.repos = {}
         for repo_name in os.listdir(PKG_REPO_DIR):
-            repo_json = self.__load_repo_object(repo_name)
+            repo_json = self._load_repo_object(repo_name)
             if repo_json:
                 self.repos[repo_name] = repo_json               
+            elif msg:
+                self.respond_to_msg(msg, "Error reloading repo: {}".format(repo_name))
             
 
     def activate_plugin(self):
@@ -190,7 +192,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
         if not trash_dir.exists():
             trash_dir.mkdir(parents=True)
-            
         
         for pkg_name in matches.group(2).split():
             pkg_path = install_dir / pkg_name
@@ -226,9 +227,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     def update(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
         url = CENTRAL_REPO_URL
+        pkg_repo_dir = Path(PKG_REPO_DIR)
 
-        if not path.exists(PKG_REPO_DIR):
-            os.makedirs(PKG_REPO_DIR)
+        if not pkg_repo_dir.exists():
+            pkg_repo_dir.mkdir(parents=True)
 
         gs = None
         if repo_name not in self._installed_repos():
@@ -236,21 +238,16 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         else:
             repo_path = self._repo_path(repo_name)
             git.reset(cwd=repo_path, hard=True)
-            gs=git.pull(cwd=repo_path)
+            gs = git.pull(cwd=repo_path)
 
         if not gs:
-            return "Error updating repo"
+            self.respond_to_msg(msg, "Unkown error updating repo: {}".format(repo_name))
+            return
 
-        if gs.has_error():
-            return "stdout:\n{}\nstderr:\n{}".format(gs.stdout, gs.stderr)
+        if not gs.has_error():
+            self._reload_repos(msg)
 
-        repo_json = self.__load_repo_object(repo_name)
-        if not repo_json:
-            return "Error updating repo:\n{}".format(resp.msg)
-
-        self.repos[repo_name] = repo_json
-
-        return "{}: {}{}".format(repo_name, gs.stdout, gs.stderr)
+        self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
 
     def list_all(self, msg, matches):
         results = ""
