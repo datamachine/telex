@@ -6,6 +6,8 @@ import shutil
 import re
 import sys
 
+from pathlib import Path
+
 import os
 from os import path
 
@@ -183,22 +185,25 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1])
 
     def uninstall(self, msg, matches):
+        install_dir = Path(PKG_INSTALL_DIR)
+        trash_dir = Path(PKG_TRASH_DIR)
+
+        if not trash_dir.exists():
+            trash_dir.mkdir(parents=True)
+            
+        
         for pkg_name in matches.group(2).split():
-            uninstalled = False
-            for pkg in os.listdir(PKG_INSTALL_DIR):
-                if pkg != pkg_name:
-                    continue
+            pkg_path = install_dir / pkg_name
 
-                pkg_path = path.join(PKG_INSTALL_DIR, pkg)
+            if not pkg_path.exists():
+                continue
 
-                trash_name = "{}.{}".format(path.basename(pkg_path), str(uuid.uuid4()))
-                trash_path = path.join(PKG_TRASH_DIR, trash_name)
-                shutil.move(pkg_path, trash_path)
+            trash_path = trash_dir / "{}.{}".format(pkg_name, str(uuid.uuid4()))
+            pkg_path.rename(trash_path)
+            self.respond_to_msg(msg, "Uninstalled plugin: {}".format(pkg_name))
+            return
 
-                self.bot.get_peer_to_send(msg).send_msg("Uninstalled plugin: {}".format(pkg_name))
-                uninstalled = True
-            if not uninstalled:
-                self.bot.get_peer_to_send(msg).send_msg("Unable to find plugin: {}".format(pkg_name))
+        self.respond_to_msg(msg, "Unable to find plugin: {}".format(pkg_name))
 
     def search(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
