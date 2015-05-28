@@ -42,7 +42,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
         "^!pkg? (uninstall) (.*)$": "uninstall",
         "^!pkg? (list)$": "list_installed",
-        "^!pkg? (list_all)$": "list_all",
+        "^!pkg? (list all)$": "list_all",
     }
 
     usage = [
@@ -81,6 +81,14 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             print(sys.exc_info()[0])
         return False
 
+    def _reload_repos(self):
+        self.repos = {}
+        for repo_name in os.listdir(PKG_REPO_DIR):
+            repo_json = self.__load_repo_object(repo_name)
+            if repo_json:
+                self.repos[repo_name] = repo_json               
+            
+
     def activate_plugin(self):
         self.central_repo = None
         self.repos = {}
@@ -89,8 +97,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if PKG_INSTALL_DIR not in self.plugin_manager.getPluginLocator().plugins_places:
             self.plugin_manager.updatePluginPlaces([PKG_INSTALL_DIR])
             self.reload_plugins()
-        else:
-            self.__reload_central_repo_object()
+
+        self._reload_repos()
             
     def __upgrade_pkg(self, pkg_name):
         args = [self.git_bin, "pull"]
@@ -106,12 +114,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return (code, fp.read())
 
     def _get_repo(self, repo_name):
-        if repo_name not in self.repos.keys():
-            repo = self.__load_repo_object(repo_name)
-            if repo:
-                self.repos[repo_name] = repo
         return self.repos.get(repo_name, None)
-            
 
     def _pkg_data_from_repo(self, pkg_name, repo_name):
         repo = self._get_repo(repo_name)
@@ -201,12 +204,15 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if repo_name not in self.repos.keys():
             return "Repo not in cache. Try \"!pkg update {}\"".format(repo_name)
 
-        repo = self.repos[repo_name]
+        repo = self._get_repo(repo_name)
+        if not repo:
+            self.respond_to_msg(msg, "Cannot locate repo \"{}\"\nTry running !pkg update".format(repo_name))
+            return
 
         query = matches.group(2)
         prog = re.compile(query, flags=re.IGNORECASE)
         results = ""
-        for pkg in repo.packages:
+        for pkg in repo.get("packages", []):
             if prog.search(pkg["name"]) or prog.search(pkg["description"]):
                 results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
