@@ -94,19 +94,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
         self._reload_repos()
             
-    def __upgrade_pkg(self, pkg_name):
-        args = [self.git_bin, "pull"]
-        pkg_path = path.join(PKG_INSTALL_DIR, pkg_name)
-
-        if not path.exists(pkg_path):
-            return (None, "'{}' does not exist".format(pkg_path))
-
-        fp = TemporaryFile(mode="r")
-        p = subprocess.Popen(args, cwd=pkg_path, stdout=fp, stderr=fp)
-        code = p.wait()
-        fp.seek(0)
-        return (code, fp.read())
-
     def _get_repo(self, repo_name):
         return self.repos.get(repo_name, None)
 
@@ -167,15 +154,26 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             self.plugin_name.collectPlugins()
             self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
 
+    def _upgrade_pkg(self, msg, pkg_name):
+        pkg_path = Path(PKG_INSTALL_DIR) / pkg_name
+        if not pkg_path.exists():
+            self.respond_to_msg(msg, "Cannot upgrade \"{}\". Package does not appear to be installed.".format(pkg_name))
+
+        gs = git.pull(str(pkg_path))
+        self.respond_to_msg(msg, "{} {}: {}{}".format(gs.exit_status, pkg_name, gs.stdout, gs.stderr))
+        
+
     def upgrade_all(self, msg, matches):
-        ret_msg = ""
+        if not path.exists(PKG_INSTALL_DIR):
+            self.respond_to_msg(msg, "Nothing to update. It appears that there are no packages installed.")
+            return
+
         for pkg_name in os.listdir(PKG_INSTALL_DIR):
-            ret_msg += "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1].strip())
-        return ret_msg
+            self._upgrade_pkg(msg, pkg_name)
 
     def upgrade_pkg(self, msg, matches):
         pkg_name = matches.group(1)
-        return "{}: {}\n".format(pkg_name, self.__upgrade_pkg(pkg_name)[1])
+        self._upgrade_pkg(msg, pkg_name)
 
     def uninstall(self, msg, matches):
         install_dir = Path(PKG_INSTALL_DIR)
