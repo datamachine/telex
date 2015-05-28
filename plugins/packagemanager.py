@@ -75,13 +75,17 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return None
         
     def _reload_repos(self, msg=None):
+        pkg_repo_dir = Path(PKG_REPO_DIR)
+        if not pkg_repo_dir.exists():
+            pkg_repo_dir.mkdir(parents=True)
+
         self.repos = {}
-        for repo_name in os.listdir(PKG_REPO_DIR):
-            repo_json = self._load_repo_object(repo_name)
+        for repo in pkg_repo_dir.iterdir():
+            repo_json = self._load_repo_object(repo.name)
             if repo_json:
-                self.repos[repo_name] = repo_json               
+                self.repos[repo.name] = repo_json               
             elif msg:
-                self.respond_to_msg(msg, "Error reloading repo: {}".format(repo_name))
+                self.respond_to_msg(msg, "Error reloading repo: {}".format(repo.name))
             
 
     def activate_plugin(self):
@@ -141,7 +145,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
             gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
             if gs.has_error():
-                self.respond_to_msg(msg, "{}{}".format(gs.stdout, gs.stderr))
+                self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
+                return
 
             pkg_req_path = self._pkg_requirements_path(pkg_name)
             if os.path.exists(pkg_req_path):
@@ -151,7 +156,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             for plugin_name in pkg_data.get("default_enable", []):
                 self.plugin_manager.activatePluginByName(plugin_name)
 
-            self.plugin_name.collectPlugins()
+            self.plugin_manager.collectPlugins()
             self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
 
     def _upgrade_pkg(self, msg, pkg_name):
@@ -197,12 +202,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def search(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
-        if repo_name not in self.repos.keys():
-            return "Repo not in cache. Try \"!pkg update {}\"".format(repo_name)
-
         repo = self._get_repo(repo_name)
         if not repo:
-            self.respond_to_msg(msg, "Cannot locate repo \"{}\"\nTry running !pkg update".format(repo_name))
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
             return
 
         query = matches.group(2)
@@ -240,6 +242,11 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
     def list_all(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
+
+        if repo_name not in self.repos.keys():
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\".")
+            return
+
         results = ""
         for pkg in self.repos.get(repo_name, {}).get("packages", []):
             results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
