@@ -74,15 +74,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             print(sys.exc_info()[0])
         return None
         
-    def __reload_central_repo_object(self, repo_name=CENTRAL_REPO_NAME):
-        try:
-            with open(path.join(PKG_REPO_DIR, CENTRAL_REPO_NAME, "repo.json"), "r") as f:
-                self.central_repo = json.load(f)
-                return True
-        except:
-            print(sys.exc_info()[0])
-        return False
-
     def _reload_repos(self, msg=None):
         self.repos = {}
         for repo_name in os.listdir(PKG_REPO_DIR):
@@ -94,7 +85,6 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             
 
     def activate_plugin(self):
-        self.central_repo = None
         self.repos = {}
         if not path.exists(PKG_BASE_DIR):
             os.makedirs(PKG_BASE_DIR)
@@ -174,6 +164,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             for plugin_name in pkg_data.get("default_enable", []):
                 self.plugin_manager.activatePluginByName(plugin_name)
 
+            self.plugin_name.collectPlugins()
             self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
 
     def upgrade_all(self, msg, matches):
@@ -257,7 +248,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return results
 
     def list_installed(self, msg, matches):
-        if not path.exists(PKG_INSTALL_DIR):
+        pkg_install_dir = Path(PKG_INSTALL_DIR)
+        if not pkg_install_dir.exists():
             return "There are no packages installed"
 
         pkgs = ""
