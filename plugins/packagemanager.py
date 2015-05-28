@@ -34,7 +34,7 @@ class GitResponse:
 
 class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
-    telegram-pybot's plugin package manager
+    telegram-pybot's package manager
     """
     patterns = {
         "^!pkg? (search) (.*)$": "search",
@@ -48,7 +48,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     }
 
     usage = [
-        "!pkg search <query>: Search the repo for plugins",
+        "!pkg search <query>: Search the repo for packages",
         "!pkg update: Update the package repo cache",
         "!pkg upgrade [pkg_name]: Update to latest version of all or specified pkg",
         "!pkg install <package name>: Install a package",
@@ -141,7 +141,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                     url = pkg_data["repo"]
 
             if not url:
-                self.respond_to_msg(msg, "Invalid plugin or url: {}".format(pkg_name))
+                self.respond_to_msg(msg, "Invalid package name or url: {}".format(pkg_name))
 
             gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
             if gs.has_error():
@@ -195,10 +195,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
 
             trash_path = trash_dir / "{}.{}".format(pkg_name, str(uuid.uuid4()))
             pkg_path.rename(trash_path)
-            self.respond_to_msg(msg, "Uninstalled plugin: {}".format(pkg_name))
+            self.respond_to_msg(msg, "Uninstalled package: {}".format(pkg_name))
             return
 
-        self.respond_to_msg(msg, "Unable to find plugin: {}".format(pkg_name))
+        self.respond_to_msg(msg, "Unable to find package: {}".format(pkg_name))
 
     def search(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
