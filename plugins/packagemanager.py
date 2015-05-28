@@ -30,16 +30,6 @@ class GitResponse:
         self.code = code
         self.msg = msg
 
-class RepoObject:
-    def __init__(self, name, data):
-        self.name = name
-        self.data = data
-
-    @property
-    def packages(self):
-        return self.data["packages"]
-
-
 class PackageManagerPlugin(plugintypes.TelegramPlugin):
     """
     telegram-pybot's plugin package manager
@@ -77,8 +67,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         repo_path = self._repo_path(repo_name)
         try:
             with open(path.join(repo_path, "repo.json"), "r") as f:
-                data = json.load(f)
-                return RepoObject(repo_name, data)
+                return json.load(f)
         except:
             print(sys.exc_info()[0])
 
@@ -117,24 +106,26 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         fp.seek(0)
         return (code, fp.read())
 
-    def __get_repo_pkg_data(self, pkg_name):
-        for pkg in self.central_repo["packages"]:
+    def _get_repo(self, repo_name):
+        if repo_name not in self.repos.keys():
+            repo = self.__load_repo_object(repo_name)
+            if repo:
+                self.repos[repo_name] = repo
+        return self.repos.get(repo_name, None)
+            
+
+    def _pkg_data_from_repo(self, pkg_name, repo_name):
+        repo = self._get_repo(repo_name)
+        for pkg in repo.get("packages",[]):
             if pkg["pkg_name"] == pkg_name:
                 return pkg
         return None
 
-    def __get_pkg_repo_path(self, pkg_name):
-        for pkg in os.listdir(PKG_INSTALL_DIR):
-            if pkg == pkg_name:
-                return path.join(PKG_INSTALL_DIR, pkg)
-        return None
+    def _pkg_repo_path(self, pkg_name):
+        return path.join(PKG_INSTALL_DIR, pkg_name)
 
-    def __get_pkg_requirements_path(self, pkg_name):
-        pkg_repo_path = self.__get_pkg_repo_path(pkg_name)
-        if not pkg_repo_path:
-            return None
-
-        return path.join(pkg_repo_path, "repository", "requirements.txt")
+    def _pkg_requirements_path(self, pkg_name):
+        return path.join(self._pkg_repo_path(pkg_name), "repository", "requirements.txt")
 
     def __get_repo_json_from_repo_path(self, repo_path):
         repo_json_path = repo_json_path = path.join(repo_path, "repository", "repo.json")
@@ -148,34 +139,35 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
     def install(self, msg, matches):
         if not path.exists(PKG_INSTALL_DIR):
             os.makedirs(PKG_INSTALL_DIR)
-        for plugin in matches.group(2).split():
-            urldata = urlparse(matches.group(2))
 
+        for pkg_name in matches.group(2).split():
             url = None
-            if urldata.scheme in [ "http", "https" ]:
-                url = plugin
+            pkg_data = None
+
+            if urlparse(matches.group(2)).scheme in ["http", "https"]:
+                url = pkg_name
             else:
-                pkg = self.__get_repo_pkg_data(plugin)
-                if pkg:
-                    url = pkg["repo"]
+                pkg_data = self._pkg_data_from_repo(pkg_name, CENTRAL_REPO_NAME)
+                print(pkg_data)
+                if pkg_data:
+                    url = pkg_data["repo"]
 
             if not url:
-                self.bot.get_peer_to_send(msg).send_msg("Invalid plugin or url: {}".format(plugin))
+                self.respond_to_msg(msg, "Invalid plugin or url: {}".format(pkg_name))
 
-            code, status = self.__clone_repository(url, pkg["pkg_name"])
-            if code != 0:
-                self.bot.get_peer_to_send(msg).send_msg(status)
+            gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
+            if not gs.success():
+                self.respond_to_msg(msg, "{}{}".format(gs.stdout, gs.stderr))
 
-            pkg_req_path = self.__get_pkg_requirements_path(plugin)
-            if pkg_req_path and os.path.exists(pkg_req_path):
+            pkg_req_path = self._pkg_requirements_path(pkg_name)
+            if os.path.exists(pkg_req_path):
                 pip.main(['install', '-r', pkg_req_path])
 
             self.reload_plugins()
-            if "default_enable" in pkg:
-                for plugin_name in pkg["default_enable"]:
-                    self.plugin_manager.activatePluginByName(plugin_name)
+            for plugin_name in pkg_data.get("default_enable", []):
+                self.plugin_manager.activatePluginByName(plugin_name)
 
-            self.bot.get_peer_to_send(msg).send_msg("{}\nSuccessfully installed plugin: {}".format(status, plugin))
+            self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
 
     def upgrade_all(self, msg, matches):
         ret_msg = ""
@@ -241,11 +233,11 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if not gs.success():
             return "stdout:\n{}\nstderr:\n{}".format(gs.stdout, gs.stderr)
 
-        repo_obj = self.__load_repo_object(repo_name)
-        if not repo_obj:
+        repo_json = self.__load_repo_object(repo_name)
+        if not repo_json:
             return "Error updating repo:\n{}".format(resp.msg)
 
-        self.repos[repo_name] = repo_obj
+        self.repos[repo_name] = repo_json
 
         return "{}: {}{}".format(repo_name, gs.stdout, gs.stderr)
 

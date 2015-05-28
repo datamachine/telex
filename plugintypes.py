@@ -38,3 +38,7 @@ class TelegramPlugin(IPlugin):
 
     def pre_process(self, msg):
         pass
+
+    def respond_to_msg(self, src_msg, msg_text):
+        self.bot.get_peer_to_send(src_msg).send_msg(msg_text)
+
