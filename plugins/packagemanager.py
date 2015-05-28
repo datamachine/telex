@@ -139,6 +139,8 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         return None
 
     def install(self, msg, matches):
+        repo_name = CENTRAL_REPO_NAME
+
         if not path.exists(PKG_INSTALL_DIR):
             os.makedirs(PKG_INSTALL_DIR)
 
@@ -149,8 +151,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             if urlparse(matches.group(2)).scheme in ["http", "https"]:
                 url = pkg_name
             else:
-                pkg_data = self._pkg_data_from_repo(pkg_name, CENTRAL_REPO_NAME)
-                print(pkg_data)
+                pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
                 if pkg_data:
                     url = pkg_data["repo"]
 
@@ -158,7 +159,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 self.respond_to_msg(msg, "Invalid plugin or url: {}".format(pkg_name))
 
             gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
-            if not gs.success():
+            if gs.has_error():
                 self.respond_to_msg(msg, "{}{}".format(gs.stdout, gs.stderr))
 
             pkg_req_path = self._pkg_requirements_path(pkg_name)
@@ -235,7 +236,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         if not gs:
             return "Error updating repo"
 
-        if not gs.success():
+        if gs.has_error():
             return "stdout:\n{}\nstderr:\n{}".format(gs.stdout, gs.stderr)
 
         repo_json = self.__load_repo_object(repo_name)

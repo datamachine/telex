@@ -26,8 +26,8 @@ class GitStatus:
         self.stdout = stdout
         self.stderr = stderr
 
-    def success(self):
-        return self.exit_status == 0
+    def has_error(self):
+        return self.exit_status != 0
 
 def clone(repository, directory=None, cwd=None):
     args = [GIT_BIN, "clone", "--", repository]
