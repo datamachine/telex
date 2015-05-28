@@ -250,8 +250,9 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
 
     def list_all(self, msg, matches):
+        repo_name = CENTRAL_REPO_NAME
         results = ""
-        for pkg in self.central_repo["packages"]:
+        for pkg in self.repos.get(repo_name, {}).get("packages", []):
             results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
 
