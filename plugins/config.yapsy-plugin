@@ -1,0 +1,9 @@
+[Core]
+Name = Config
+Module = config
+
+[Documentation]
+Author = Vincent Castellano
+Version = 1.0
+Website = https://github.com/datamachine/telegram-pybot
+Description = Plugin configuration.
