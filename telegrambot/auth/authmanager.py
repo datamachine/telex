@@ -31,3 +31,9 @@ class IAuthManager(metaclass=ABCMeta):
     def group_has_user(self, group, user):
         return user in self.get_users_from_group(group)
 
+    def groups_has_user(self, groups, user):
+        for group in groups:
+            if self.group_has_user(group, user):
+                return True
+        return False
+

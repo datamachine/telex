@@ -174,6 +174,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         self.respond_to_msg(msg, "{} {}: {}{}".format(gs.exit_status, pkg_name, gs.stdout, gs.stderr))
         
 
+    @auth.authorize(groups=["admins"])
     def upgrade_all(self, msg, matches):
         if not path.exists(PKG_INSTALL_DIR):
             self.respond_to_msg(msg, "Nothing to update. It appears that there are no packages installed.")
@@ -182,10 +183,12 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
         for pkg_name in os.listdir(PKG_INSTALL_DIR):
             self._upgrade_pkg(msg, pkg_name)
 
+    @auth.authorize(groups=["admins"])
     def upgrade_pkg(self, msg, matches):
         pkg_name = matches.group(1)
         self._upgrade_pkg(msg, pkg_name)
 
+    @auth.authorize(groups=["admins"])
     def uninstall(self, msg, matches):
         install_dir = Path(PKG_INSTALL_DIR)
         trash_dir = Path(PKG_TRASH_DIR)
@@ -221,6 +224,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
 
+    @auth.authorize(groups=["admins"])
     def update(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
         url = CENTRAL_REPO_URL
