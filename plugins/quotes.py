@@ -46,26 +46,6 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         super().__init__()
         DatabaseMixin.__init__(self)
 
-    def run(self, msg, matches):
-        chat_id = msg.dest.id
-        if matches.group(0) == "!quote":
-            return self.get_random_quote(chat_id)
-
-        if matches.group(0) == "!quotethis":
-            return self.add_reply(msg)
-
-        if matches.group(0).startswith("!delquote") and self.bot.admin_check(msg):
-            return self.del_quote(chat_id, matches.group(1))
-
-        if matches.group(0).startswith("!getquote"):
-            return self.get_quote(chat_id, matches.group(1))
-
-        if matches.group(0).startswith("!findquote"):
-            return self.find_quote(chat_id, matches.group(1))
-
-        if matches.group(0).startswith("!addquote"):
-            return self.add_quote(msg, matches.group(1))
-
     @group_only
     def add_quote(self, msg, matches):
         quote = matches.group(1)
