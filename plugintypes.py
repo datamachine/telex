@@ -1,6 +1,5 @@
 from yapsy.IPlugin import IPlugin
 
-
 class TelegramPlugin(IPlugin):
     def __init__(self):
         super().__init__()
@@ -39,6 +38,6 @@ class TelegramPlugin(IPlugin):
     def pre_process(self, msg):
         pass
 
-    def respond_to_msg(self, src_msg, msg_text):
-        self.bot.get_peer_to_send(src_msg).send_msg(msg_text)
+    def respond_to_msg(self, src_msg, msg_text, **kwargs):
+        self.bot.get_peer_to_send(src_msg).send_msg(msg_text, **kwargs)
 
