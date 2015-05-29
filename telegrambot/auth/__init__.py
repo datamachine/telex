@@ -1,5 +1,6 @@
 from .authmanager import *
 from .configauthmanager import *
+from .decorators import *
 
-AuthManager = None
+AuthManager = ConfigAuthManager("permissions.conf")
 

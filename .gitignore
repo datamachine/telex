@@ -10,3 +10,4 @@ plugins.repos
 plugins.trash
 pkgs
 *.swp
+permissions.conf

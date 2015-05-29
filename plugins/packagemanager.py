@@ -17,7 +17,8 @@ from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
 
-from telegrambot import git
+from telegrambot import git, auth
+
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
 CENTRAL_REPO_NAME="main"
@@ -122,6 +123,7 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
             pass
         return None
 
+    @auth.authorize(groups=["admins"])
     def install(self, msg, matches):
         if not self.repos:
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
@@ -139,8 +141,10 @@ class PackageManagerPlugin(plugintypes.TelegramPlugin):
                 url = pkg_name
             else:
                 pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
-                if pkg_data:
-                    url = pkg_data["repo"]
+                if not pkg_data:
+                    self.respond_to_msg(msg, "Package not found in repository: {}".format(pkg_name))
+                    return
+                url = pkg_data["repo"]
 
             if not url:
                 self.respond_to_msg(msg, "Invalid package name or url: {}".format(pkg_name))

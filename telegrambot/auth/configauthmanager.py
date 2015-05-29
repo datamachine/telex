@@ -5,11 +5,17 @@ from pathlib import Path
 class ConfigAuthManager(IAuthManager):
     def __init__(self, configfile):
         self.config_path = Path(configfile)
+        self.config = ConfigParser()
+
         if not self.config_path.exists():
             self.config_path.touch()
+        else:
+            self._load_config()
 
-        self.config = ConfigParser()
-        self._load_config()
+        if not self.config.has_section("groups"):
+            self.config.add_section("groups")
+            self.config.set("groups", "admins", "")
+            self._save_config()
 
     def _load_config(self):
         with self.config_path.open("r") as f:
@@ -36,7 +42,7 @@ class ConfigAuthManager(IAuthManager):
 
     def get_users_from_group(self, group):
         if self.config.has_section("groups"):
-            return self.config.get("groups", group, raw=True, fallback="").split(",")
+            return list(map(int,self.config.get("groups", group, raw=True, fallback="").split(",")))
         return []
         
 
