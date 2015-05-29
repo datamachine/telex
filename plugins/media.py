@@ -6,7 +6,7 @@ class MediaPlugin(plugintypes.TelegramPlugin):
     Upload media files to chat when linked.
     """
     patterns = [
-        "(https?://[\w\-\_\.\?\:\/\+\=\&]+\.(gif|mp4|pdf|pdf|ogg|zip|mp3|rar|wmv|doc|avi))",
+        "(https?://[\w\-\_\.\?\:\/\+\=\&]+\.(gif|mp4|pdf|pdf|ogg|zip|mp3|rar|wmv|doc|avi))v?",
     ]
 
     usage = [
