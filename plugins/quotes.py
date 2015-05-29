@@ -1,6 +1,8 @@
 import plugintypes
 import tgl
 from DatabaseMixin import DatabaseMixin, DbType
+from telegrambot import auth
+from telegrambot.utils.decorators import group_only
 from datetime import datetime
 
 
@@ -10,14 +12,14 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     Store and retrieve quotes from a database.
     """
 
-    patterns = [
-        "^!quote$",
-        "^!addquote (.*)",
-        "^!quotethis$",
-        "^!delquote ([0-9]+)$",
-        "^!getquote ([0-9]+)$",
-        "^!findquote (.*)",
-    ]
+    patterns = {
+        "^!quote$": "get_random_quote",
+        "^!addquote (.*)": "add_quote",
+        "^!quotethis$": "add_reply",
+        "^!delquote ([0-9]+)$": "del_quote",
+        "^!getquote ([0-9]+)$": "get_quote",
+        "^!findquote (.*)": "find_quote",
+    }
 
     usage = [
         "!quote: return random quote",
@@ -43,7 +45,7 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     def __init__(self):
         super().__init__()
         DatabaseMixin.__init__(self)
-        
+
     def run(self, msg, matches):
         chat_id = msg.dest.id
         if matches.group(0) == "!quote":
@@ -51,7 +53,7 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
         if matches.group(0) == "!quotethis":
             return self.add_reply(msg)
-        
+
         if matches.group(0).startswith("!delquote") and self.bot.admin_check(msg):
             return self.del_quote(chat_id, matches.group(1))
 
@@ -64,7 +66,9 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         if matches.group(0).startswith("!addquote"):
             return self.add_quote(msg, matches.group(1))
 
-    def add_quote(self, msg, quote):
+    @group_only
+    def add_quote(self, msg, matches):
+        quote = matches.group(1)
         if hasattr(msg.src, 'username'):
             username = msg.src.username
         self.insert(timestamp=msg.date,
@@ -73,7 +77,10 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                     chat_id=msg.dest.id, quote=quote)
         return "Done!"
 
-    def get_quote(self, chat_id, quote_id):
+    @group_only
+    def get_quote(self, msg, matches):
+        chat_id = msg.dest.id
+        quote_id = matches.group(1)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
         if len(results) == 0:
@@ -85,13 +92,16 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                                                                     qid=result["quote_id"])
         return text
 
-    def find_quote(self, chat_id, search):
+    @group_only
+    def find_quote(self, msg, matches):
+        chat_id = msg.dest.id
+        search = matches.group(1)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} and quote LIKE ? LIMIT 5".format(self.table_name, chat_id), parameters=("%{0}%".format(search),))
 
         if len(results) == 0:
             return "No such quote in the database for this channel!"
-        
+
         text = "Quotes containing '{0}':\n".format(search)
         for result in results:
           text += "{quote} ({qid} Added By {name} on {date})\n".format(quote=result["quote"],
@@ -100,7 +110,11 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                                                                        qid=result["quote_id"])
         return text
 
-    def del_quote(self, chat_id, quote_id):
+    @auth.authorize(groups=['admins'])
+    @group_only
+    def del_quote(self, msg, matches):
+        chat_id = msg.dest.id
+        quote_id = matches.group(1)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
         if len(results) == 0:
@@ -108,10 +122,10 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         else:
             self.query("DELETE FROM {0} "
                        "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
-            return "Quote deleted!"     
-        
+            return "Quote deleted!"
 
-    def add_reply(self, msg):
+    @group_only
+    def add_reply(self, msg, matches):
         if not hasattr(msg, 'reply_id'):
             return "The !quotethis must be used in a reply!"
         if not hasattr(msg, 'reply') or msg.reply is None:
@@ -124,7 +138,9 @@ class QuotesPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         quote = "{0} {1}: {2}".format(orig_peer.first_name or '', orig_peer.last_name or '', msg.reply.text)
         return self.add_quote(msg, quote)
 
-    def get_random_quote(self, chat_id):
+    @group_only
+    def get_random_quote(self, msg, matches):
+        chat_id = msg.dest.id
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} ORDER BY RANDOM() LIMIT 1".format(self.table_name, chat_id))
         if len(results) == 0:

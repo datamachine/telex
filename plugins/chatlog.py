@@ -1,6 +1,7 @@
 import plugintypes
 import tgl
 from DatabaseMixin import DatabaseMixin, DbType
+from telegrambot.utils.decorators import group_only
 from functools import partial
 
 
@@ -10,12 +11,12 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
     """
     HISTORY_QUERY_SIZE = 1000
 
-    patterns = [
-        "^!stats$",
-        "^!stats_pattern (.*)",
-        "^!loadhistory$",
-        "^!seen (([0-9]+)|@(.*)|(.*))",
-    ]
+    patterns = {
+        "^!stats$": "stats_count",
+        "^!stats_pattern (.*)": "stats_pattern",
+        "^!loadhistory$": "load_history",
+        "^!seen (([0-9]+)|@(.*)|(.*))": "seen"
+    }
 
     usage = [
         "!stats: return chat stats",
@@ -39,23 +40,6 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
         super().__init__()
         DatabaseMixin.__init__(self)
 
-    def run(self, msg, matches):
-        chat_id = msg.dest.id
-        if matches.group(0) == "!stats":
-            return self.stats_count(chat_id)
-        if matches.group(0).startswith("!stats_pattern"):
-            return self.stats_count(chat_id, matches.group(1))
-        if matches.group(0) == "!loadhistory" and self.bot.admin_check(msg):
-            return self.load_history(msg.dest)
-
-        if matches.group(0).startswith("!seen"):
-            if matches.group(2) is not None:
-                return self.seen_by_id(chat_id, matches.group(2))
-            elif matches.group(3) is not None:
-                return self.seen_by_username(chat_id, matches.group(3))
-            else:
-                return self.seen_by_fullname(chat_id, matches.group(4))
-
     def pre_process(self, msg):
         if not hasattr(msg, 'text'): #TODO support media
             return
@@ -68,6 +52,25 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
                     full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or ''),
                     chat_id=msg.dest.id, message=msg.text)
 
+    @group_only
+    def seen(self, msg, matches):
+        chat_id = msg.dest.id
+        if matches.group(2) is not None:
+            return self.seen_by_id(chat_id, matches.group(2))
+        elif matches.group(3) is not None:
+            return self.seen_by_username(chat_id, matches.group(3))
+        else:
+            return self.seen_by_fullname(chat_id, matches.group(4))
+
+
+    @group_only
+    def load_history(self, msg, matches):
+        chat = msg.dest
+        msg_count = 0
+        tgl.get_history(chat, msg_count,
+                        self.HISTORY_QUERY_SIZE,
+                        partial(self.history_cb, msg_count, chat))
+
     def history_cb(self, msg_count, chat, success, msgs):
         if success:
             self.insert_history(msgs)
@@ -79,12 +82,6 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
             else:
                 tgl.send_msg(chat, "Loaded {0} messaged into the table".format(msg_count))
 
-    def load_history(self, chat):
-        msg_count = 0
-        tgl.get_history(chat, msg_count,
-                        self.HISTORY_QUERY_SIZE,
-                        partial(self.history_cb, msg_count, chat))
-
     def insert_history(self, msgs):
         # TODO Support Media Msgs
         values = [[msg.id, msg.date, msg.src.id, msg.src.username or '',
@@ -94,7 +91,15 @@ class ChatLogPlugin(plugintypes.TelegramPlugin, DatabaseMixin):
 
         self.insert_many(columns, values)
 
-    def stats_count(self, chat_id, pattern=None):
+    @group_only
+    def stats_count(self, msg, matches):
+        return self.get_stats(msg.dest.id)
+
+    @group_only
+    def stats_pattern(self, msg, matches):
+        return self.get_stats(msg.dest.id, matches.group(1))
+
+    def get_stats(self, chat_id, pattern=None):
         pattern_query = ""
         if pattern is not None:
             pattern_query = " AND message LIKE ? "

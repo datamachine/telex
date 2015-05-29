@@ -1,4 +1,5 @@
 import plugintypes
+from telegrambot import auth
 
 NO_ENTRY = b'\xf0\x9f\x9a\xab'.decode("utf-8")
 CHECK_BOX = b'\xe2\x9c\x85'.decode("utf-8")
@@ -7,14 +8,12 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
     """
     Plugin to manage other plugins. Enable, disable or reload.
     """
-    patterns = [
-        "^!plugins$",
-        "^!plugins? (enable) ([\w_.-]+)$",
-        "^!plugins? (disable) ([\w_.-]+)$",
-        # "^!plugins? (enable) ([\w_.-]+) (chat)",
-        # "^!plugins? (disable) ([\w_.-]+) (chat)",
-        "^!plugins? (reload)$"
-    ]
+    patterns = {
+        "^!plugins$": "list_plugins",
+        "^!plugins? (enable) ([\w_.-]+)$": "enable_plugin",
+        "^!plugins? (disable) ([\w_.-]+)$": "disable_plugin",
+        "^!plugins? (reload)$": "reload_plugins"
+    }
 
     usage = [
         "!plugins: list all plugins.",
@@ -24,34 +23,22 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
         "!plugins reload: reloads all plugins."
     ]
 
-    def run(self, msg, matches):
-        if matches.group(0) == "!plugins":
-            return self.list_plugins()
-
-        command = matches.group(1)
-
-        if command == "enable":
-            return self.enable_plugin(matches)
-
-        if command == "disable":
-            return self.disable_plugin(matches)
-
-        if command == "reload":
-            return self.reload_plugins()
-
-    def enable_plugin(self, matches):
+    @auth.authorize(groups=["admins"])
+    def enable_plugin(self, msg, matches):
         if self.plugin_manager.activatePluginByName(matches.group(2)):
             return "Enabled plugin: {}".format(matches.group(2))
         else:
             return "Error loading plugin: {}".format(matches.group(2))
 
-    def disable_plugin(self, matches):
+    @auth.authorize(groups=["admins"])
+    def disable_plugin(self, msg, matches):
         if self.plugin_manager.deactivatePluginByName(matches.group(2)):
             return "Disabled plugin: {}".format(matches.group(2))
         else:
             return "Error disabling plugin: {}".format(matches.group(2))
- 
-    def reload_plugins(self):
+
+    @auth.authorize(groups=["admins"])
+    def reload_plugins(self, msg, matches):
         self.plugin_manager.reloadPlugins()
         return "Plugins reloaded"
 
@@ -60,9 +47,9 @@ class PluginsPlugin(plugintypes.TelegramPlugin):
             return "0{}".format(plugin.name)
         else:
             return "1{}".format(plugin.name)
-            
 
-    def list_plugins(self):
+
+    def list_plugins(self, msg, matches):
         text = ""
         plugins = sorted(self.plugin_manager.getAllPlugins(), key=self.__plugin_sort_key)
         for plugin in plugins:
