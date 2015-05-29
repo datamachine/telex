@@ -14,7 +14,7 @@ class IAuthManager(metaclass=ABCMeta):
         return NotImplemented
 
     @abstractmethod
-    def delete_group(self, group):
+    def remove_group(self, group):
         raise NotImplemented
 
     def add_user_to_group(self, group, user):
@@ -24,10 +24,10 @@ class IAuthManager(metaclass=ABCMeta):
 
     def remove_user_from_group(self, group, user):
         users = set(self.get_users_from_group(group))
-        if user in group:
-            group.remove(user)
+        if user in users:
+            users.remove(user)
         self.set_group(group, users)
 
-    def is_user_in_group(self, group, user):
+    def group_has_user(self, group, user):
         return user in self.get_users_from_group(group)
 
