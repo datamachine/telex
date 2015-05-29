@@ -17,6 +17,12 @@ While already very capable, this bot is still in relatively early development. S
 
 With that said, we do strive to have the bot continue to function seemlessly when pulling the latest HEAD
 
+# Contact
+
+The primary developers are Vince (@Surye) and Phillip (@Tyrannosaurus) and can be contacted directly through telegram.
+
+Bug reports and issues can be reported at: https://github.com/datamachine/telegram-pybot/issues
+
 # Known Issues
 
 ## Not recieving telegram verification text on initial launch
