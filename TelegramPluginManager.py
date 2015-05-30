@@ -35,7 +35,8 @@ class TelegramPluginManager(ConfigurablePluginManager):
 
         super().__init__(configparser_instance = self.config, 
                          config_change_trigger = lambda :self.save_config(),
-                         directories_list = ["plugins"] )
+                         directories_list = ["plugins"],
+                         plugin_info_ext = ('plugin', 'yapsy-plugin'))
 
         self.bot = bot
 
