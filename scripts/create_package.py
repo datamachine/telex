@@ -8,8 +8,7 @@ import os, sys
 
 # File templates
 plugin_py = \
-"""
-import plugintypes
+"""import plugintypes
 
 class {plugin_name}Plugin(plugintypes.TelegramPlugin):
     patterns = {{
@@ -22,12 +21,10 @@ class {plugin_name}Plugin(plugintypes.TelegramPlugin):
 
     def callback(self, msg, matches):
         return "Response Here"
-
 """
 
 plugin_plugin = \
-"""
-[Core]
+"""[Core]
 Name = {plugin_name}
 Module = {module_name}
 
@@ -36,8 +33,7 @@ Module = {module_name}
 """
 
 repos_json = \
-"""
-{{
+"""{{
     "name": "{package_name}",
     "description": "{description}",
     {version}
@@ -107,4 +103,6 @@ if __name__ == "__main__":
         f.write(out_readme_md)
     with open("{}/repository/repos.json".format(opts.output), 'w') as f:
         f.write(out_repos_json)
+    with open("{}/repository/requirements.txt".format(opts.output), 'w') as f:
+        f.write("")
 
