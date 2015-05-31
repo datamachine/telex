@@ -4,7 +4,6 @@ try:
 except ImportError:
     import test_harness.tgl as tgl
 
-from configobj import ConfigObj
 import re
 from TelegramPluginManager import TelegramPluginManager
 
@@ -17,26 +16,8 @@ class TelegramBot:
     binlog_done = False
 
     def __init__(self):
-        self.config = ConfigObj("telegram-bot.conf")
-        if len(self.config) == 0:
-            self.init_config()
-
-        try:
-            self.admins = int(self.config["admin_users"])
-        except:
-            self.admins = [int(admin) for admin in self.config["admin_users"]]
-
         self.plugin_manager = TelegramPluginManager(self)
         self.plugin_manager.collectPlugins()
-
-
-    # Config Management
-    def init_config(self):
-        self.config["admin_users"] = [
-            self.our_id,
-        ]
-
-        self.config.write()
 
     # Util
     def admin_check(self, msg):
