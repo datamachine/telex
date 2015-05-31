@@ -12,6 +12,19 @@ Everything is being written for Python 3.4 currently. Everything works in a virt
 
 There are not a ton of useful plugins by default, but you can run ``` !pkg update ``` and then ``` !pkg list all ``` to see what plugins are available to install.
 
+Some plugins require admin permissions. You can set an admin in permissions.conf using the followig format
+
+```
+[groups]
+  admins = <userid#>,<userid#>,<userid#>
+```
+
+You can get your user id number by sending the following query to the bot
+
+```
+!tginfo id
+```
+
 # Notes
 While already very capable, this bot is still in relatively early development. Some plugin names, or plugin API calls may be modifed. However, we are starting to settle on our stable APIs.
 
