@@ -1,4 +1,3 @@
-import plugintypes
 import json
 import subprocess
 import uuid
@@ -17,7 +16,7 @@ from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
 
-from telegrambot import git, auth
+from telegrambot import git, auth, plugin
 
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
@@ -33,7 +32,7 @@ class GitResponse:
         self.code = code
         self.msg = msg
 
-class PackageManagerPlugin(plugintypes.TelegramPlugin):
+class PackageManagerPlugin(plugin.TelegramPlugin):
     """
     telegram-pybot's package manager
     """
