@@ -1,14 +1,7 @@
 import re
 import unittest
+from .repo import *
 
-def is_valid_repo_name(name):
-    expr = "[\w-]{2,255}"
-    return type(name) is str and re.fullmatch(expr, name) and name.islower() and name[0].isalpha()
-
-class RepoClient:
-    def __init__(self, name, url):
-        pass
-        
 # Unit Tests
 class TestRepoNames(unittest.TestCase):
     def test_valid_names(self):
