@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
 
-from telegrambot import git, auth, plugin, packagerepo
+from telegrambot import git, auth, plugin
 
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
