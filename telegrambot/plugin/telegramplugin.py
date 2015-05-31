@@ -26,6 +26,18 @@ class TelegramPlugin(IPlugin):
     def read_option(self, option):
         return self.plugin_manager.readOptionFromPlugin(self.category_name, self.name, option)
 
+    def all_options(self):
+        from configparser import ConfigParser
+        from pathlib import Path
+        cp = ConfigParser()
+        p = Path("plugins.conf")
+        if p.exists():
+            cp.read_file(p.open("r"))
+        if not cp.has_section(self.name):
+            return []
+        
+        return cp.options(self.name)
+        
     def has_option(self, option):
         return self.plugin_manager.hasOptionFromPlugin(self.category_name, self.name, option)
 

@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
 
-from telegrambot import git, auth, plugin
+from telegrambot import git, auth, plugin, packagerepo
 
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
@@ -39,17 +39,23 @@ class PackageManagerPlugin(plugin.TelegramPlugin):
         "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
         "^!pkg? (uninstall) (.*)$": "uninstall",
         "^!pkg? (list)$": "list_installed",
-        "^!pkg? (list all)$": "list_all",
+        "^!pkg? (list[\s_]all)$": "list_all",
+        "^!pkg list[\s_]repos$": "list_repos",
+        #"^!pkg? add[\s_]repo (?P<repo_name>[\w\-]+) (?P<repo_url>[\S]+)$": "add_repo",
     }
 
     usage = [
+        "Package Command:",
         "!pkg search <query>: Search the repo for packages",
         "!pkg update: Update the package repo cache",
         "!pkg upgrade [pkg_name]: Update to latest version of all or specified pkg",
         "!pkg install <package name>: Install a package",
         "!pkg uninstall <package name>: Uninstall a package",
-        "!pkg list: List installed packages"
-        "!pkg list all: List packages in the repo"
+        "!pkg list: List installed packages",
+        "!pkg list all: List packages in the repo",
+        "Repository Commands:",
+        "!pkg list repos",
+        #"!pkg add repo <repo_name>",
     ]
 
     def _installed_repos(self):
@@ -268,6 +274,35 @@ class PackageManagerPlugin(plugin.TelegramPlugin):
             if repo_json:
                 pkgs += "{} | {} | {}\n".format(f, repo_json["version"], repo_json["description"])
         return pkgs
+
+    @auth.authorize(groups=["admins"])
+    def add_repo(self, msg, matches):
+        repo_name = matches.groupdict()["repo_name"]
+        repo_url = matches.groupdict()["repo_url"]
+
+        if not packagerepo.is_valid_repo_name(repo_name):
+            return "Error: invalid repo name: {}".format(repo_name)
+
+        if repo_name == "main":
+            return "Error: repo named \"main\" is reserved"
+
+        if repo_name in os.listdir(PKG_REPO_DIR):
+            return "Error: a repo by the name \"{}\" already exists".format(repo_name)
+
+        "repo.{}={}".format(repo_name, repo_url)
+
+    @auth.authorize(groups=["admins"])
+    def list_repos(self, msg, matches):
+        repos = []
+        for option in self.all_options():
+            if option.startswith("repo."):
+                repo_name = option[5:]
+                if not packagerepo.is_valid_repo_name(repo_name):
+                    self.respond_to_msg(msg, "invalid repo name: {}".format(repo_name))
+                else:
+                    repos += ["{}: {}".format(option[5:], self.read_option(option))]
+        return "\n".join(repos)
+        
  
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
