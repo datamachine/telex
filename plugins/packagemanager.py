@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 
 from tempfile import TemporaryFile
 
-from telegrambot import git, auth, plugin
+from telegrambot import git, auth, plugin, packagerepo
 
 
 CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
@@ -26,11 +26,6 @@ PKG_BASE_DIR="pkgs"
 PKG_REPO_DIR="pkgs/repos"
 PKG_TRASH_DIR="pkgs/trash"
 PKG_INSTALL_DIR="pkgs/installed"
-
-class GitResponse:
-    def __init__(self, code, msg):
-        self.code = code
-        self.msg = msg
 
 class PackageManagerPlugin(plugin.TelegramPlugin):
     """
