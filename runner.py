@@ -1,5 +1,5 @@
 import tgl
-from TelegramBot import TelegramBot
+from telegrambot import TelegramBot
 
 bot = TelegramBot()
 
