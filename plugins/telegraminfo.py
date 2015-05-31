@@ -1,6 +1,6 @@
-import plugintypes
+from telegrambot import plugin
 
-class TelegramInfoPlugin(plugintypes.TelegramPlugin):
+class TelegramInfoPlugin(plugin.TelegramPlugin):
     patterns = [
         "^!tginfo (id)",
         "^!tginfo (repr) (.+)"

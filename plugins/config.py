@@ -1,8 +1,9 @@
-import plugintypes
 from telegrambot import auth
 from telegrambot.utils.decorators import pm_only
+from telegrambot import plugin
 
-class ConfigPlugin(plugintypes.TelegramPlugin):
+
+class ConfigPlugin(plugin.TelegramPlugin):
     """
     Plugin to manage other plugin configuration.
     """

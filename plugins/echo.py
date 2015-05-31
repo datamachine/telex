@@ -1,6 +1,6 @@
-import plugintypes
+from telegrambot import plugin
 
-class EchoPlugin(plugintypes.TelegramPlugin):
+class EchoPlugin(plugin.TelegramPlugin):
     """
     Just print the contents of the command
     """
