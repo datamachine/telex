@@ -49,7 +49,7 @@ class PackageManagerPlugin(plugin.TelegramPlugin):
         "!pkg install <package name>: Install a package",
         "!pkg uninstall <package name>: Uninstall a package",
         "!pkg list: List installed packages"
-        "!pkg list_all: List packages in the repo"
+        "!pkg list all: List packages in the repo"
     ]
 
     def _installed_repos(self):
