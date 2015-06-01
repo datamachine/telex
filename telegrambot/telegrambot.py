@@ -1,14 +1,7 @@
-import logging
-try:
-    import tgl
-except ImportError:
-    import test_harness.tgl as tgl
+import tgl
 
 import re
 from TelegramPluginManager import TelegramPluginManager
-
-#logging.basicConfig(level=logging.DEBUG)
-
 
 
 class TelegramBot:
