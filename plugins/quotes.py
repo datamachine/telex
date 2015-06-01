@@ -48,7 +48,10 @@ class QuotesPlugin(plugin.TelegramPlugin, DatabaseMixin):
 
     @group_only
     def add_quote(self, msg, matches):
-        quote = matches.group(1)
+        try:
+            quote = matches.group(1)
+        except AttributeError:
+            quote = matches
         if hasattr(msg.src, 'username'):
             username = msg.src.username
         self.insert(timestamp=msg.date,
