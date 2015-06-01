@@ -1,6 +1,6 @@
-import plugintypes
+from telegrambot.plugin import TelegramPlugin
 
-class HelpPlugin(plugintypes.TelegramPlugin):
+class HelpPlugin(TelegramPlugin):
     """
     Print help for telegram-bot and plugins
     """

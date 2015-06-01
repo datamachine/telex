@@ -1,7 +1,7 @@
-import plugintypes
+from telegrambot.plugin import TelegramPlugin
 import tgl
 
-class MediaPlugin(plugintypes.TelegramPlugin):
+class MediaPlugin(TelegramPlugin):
     """
     Upload media files to chat when linked.
     """
