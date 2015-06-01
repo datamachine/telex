@@ -12,3 +12,6 @@ tgl.set_on_secret_chat_update(bot.on_secret_chat_update)
 tgl.set_on_user_update(bot.on_user_update)
 tgl.set_on_chat_update(bot.on_chat_update)
 tgl.set_on_loop(bot.on_loop)
+
+# TODO: Make this configurable
+tgl.set_link_preview(False)
