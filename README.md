@@ -1,4 +1,4 @@
-# telegram-pybot
+# Telex
 A Telegram Bot based on plugins. 
 
 This bot uses tg and tgl C libraries for its bindings, and we have been contributing our python bindings as we work through it.
@@ -36,7 +36,7 @@ The primary developers are Vince (@Surye) and Phillip (@Tyrannosaurus) and can b
 
 You can also join our telegram group using the link: https://telegram.me/joinchat/05c5c2f60112fa104d1c0c563b2fd34a
 
-Bug reports and issues can be reported at: https://github.com/datamachine/telegram-pybot/issues
+Bug reports and issues can be reported at: https://github.com/datamachine/telex/issues
 
 # Known Issues
 
