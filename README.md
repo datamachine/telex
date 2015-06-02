@@ -5,8 +5,8 @@ This bot uses tg and tgl C libraries for its bindings, and we have been contribu
 
 Everything is being written for Python 3.4 currently. Everything works in a virtualenv installed and sourced in the launch script.
 
-    git clone https://github.com/datamachine/telegram-pybot --recursive
-    cd telegram-pybot
+    git clone https://github.com/datamachine/telex --recursive
+    cd telex
     ./launch.sh install
     ./launch.sh
 
