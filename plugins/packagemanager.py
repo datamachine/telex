@@ -19,7 +19,7 @@ from tempfile import TemporaryFile
 from telex import git, auth, plugin, packagerepo
 
 
-CENTRAL_REPO_URL="https://github.com/datamachine/telegram-pybot-plugin-repo"
+CENTRAL_REPO_URL="https://github.com/datamachine/telex-plugin-repo"
 CENTRAL_REPO_NAME="main"
 
 PKG_BASE_DIR="pkgs"
