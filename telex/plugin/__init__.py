@@ -1,2 +1,2 @@
-from .telegramplugin import TelegramPlugin
+from .telexplugin import TelexPlugin
 from .decorators import *

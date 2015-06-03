@@ -28,7 +28,7 @@ ConfigurablePluginManager.registerOptionFromPlugin = __override_registerOptionFr
 ConfigurablePluginManager.hasOptionFromPlugin = __override_hasOptionFromPlugin
 ConfigurablePluginManager.readOptionFromPlugin = __override_readOptionFromPlugin
 
-class TelegramPluginManager(ConfigurablePluginManager):
+class TelexPluginManager(ConfigurablePluginManager):
     def __init__(self, bot):
         self.config = configparser.ConfigParser()
         self.config.read(PLUGIN_CONFIG_NAME)

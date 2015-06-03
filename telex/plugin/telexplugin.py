@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 
-class TelegramPlugin(IPlugin):
+class TelexPlugin(IPlugin):
     def __init__(self):
         super().__init__()
         self.bot = None
@@ -35,9 +35,8 @@ class TelegramPlugin(IPlugin):
             cp.read_file(p.open("r"))
         if not cp.has_section(self.name):
             return []
-        
         return cp.options(self.name)
-        
+
     def has_option(self, option):
         return self.plugin_manager.hasOptionFromPlugin(self.category_name, self.name, option)
 

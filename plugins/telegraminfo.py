@@ -1,6 +1,6 @@
-from telegrambot import plugin
+from telex import plugin
 
-class TelegramInfoPlugin(plugin.TelegramPlugin):
+class TelegramInfoPlugin(plugin.TelexPlugin):
     patterns = [
         "^!tginfo (id)",
         "^!tginfo (repr) (.+)"

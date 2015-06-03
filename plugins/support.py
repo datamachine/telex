@@ -1,6 +1,6 @@
-from telegrambot import plugin
+from telex import plugin
 
-class SupportPlugin(plugin.TelegramPlugin):
+class SupportPlugin(plugin.TelexPlugin):
     patterns = {
         "^!support": "list_support_contact_info"
     }

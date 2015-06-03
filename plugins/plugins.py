@@ -1,10 +1,10 @@
-from telegrambot.plugin import TelegramPlugin
-from telegrambot import auth
+from telex.plugin import TelexPlugin
+from telex import auth
 
 NO_ENTRY = b'\xf0\x9f\x9a\xab'.decode("utf-8")
 CHECK_BOX = b'\xe2\x9c\x85'.decode("utf-8")
 
-class PluginsPlugin(TelegramPlugin):
+class PluginsPlugin(TelexPlugin):
     """
     Plugin to manage other plugins. Enable, disable or reload.
     """

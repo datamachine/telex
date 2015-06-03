@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 from os.path import join, exists
 from urllib.parse import urlparse
 
-import telegrambot.git as git
+import telex.git as git
 
 REPO_URL = "https://github.com/datamachine/telegram-pybot-dice.git"
 REPO_NAME = "dice"

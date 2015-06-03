@@ -1,9 +1,9 @@
-from telegrambot import auth
-from telegrambot.utils.decorators import pm_only
-from telegrambot import plugin
+from telex import auth
+from telex.utils.decorators import pm_only
+from telex import plugin
 
 
-class ConfigPlugin(plugin.TelegramPlugin):
+class ConfigPlugin(plugin.TelexPlugin):
     """
     Plugin to manage other plugin configuration.
     """

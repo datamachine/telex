@@ -1,13 +1,13 @@
 import tgl
-from DatabaseMixin import DatabaseMixin, DbType
-from telegrambot import auth
-from telegrambot.utils.decorators import group_only
+from telex.DatabaseMixin import DatabaseMixin, DbType
+from telex import auth
+from telex.utils.decorators import group_only
 from datetime import datetime
-from telegrambot import plugin
+from telex import plugin
 
 
 
-class QuotesPlugin(plugin.TelegramPlugin, DatabaseMixin):
+class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
     """
     Store and retrieve quotes from a database.
     """

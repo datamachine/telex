@@ -1,7 +1,7 @@
 import tgl
-from telegrambot import TelegramBot
+from telex import TelexBot
 
-bot = TelegramBot()
+bot = TelexBot()
 
 # Set callbacks
 tgl.set_on_binlog_replay_end(bot.on_binlog_replay_end)

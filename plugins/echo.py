@@ -1,6 +1,6 @@
-from telegrambot import plugin
+from telex import plugin
 
-class EchoPlugin(plugin.TelegramPlugin):
+class EchoPlugin(plugin.TelexPlugin):
     """
     Just print the contents of the command
     """

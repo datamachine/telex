@@ -1,11 +1,11 @@
 import tgl
-from DatabaseMixin import DatabaseMixin, DbType
-from telegrambot.utils.decorators import group_only
+from telex.DatabaseMixin import DatabaseMixin, DbType
+from telex.utils.decorators import group_only
 from functools import partial
-from telegrambot import plugin
+from telex import plugin
 
 
-class ChatLogPlugin(plugin.TelegramPlugin, DatabaseMixin):
+class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
     """
     Tracks a chat log and provides statistics and queries
     """

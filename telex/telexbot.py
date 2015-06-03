@@ -1,15 +1,15 @@
 import tgl
 
 import re
-from TelegramPluginManager import TelegramPluginManager
+from .TelexPluginManager import TelexPluginManager
 
 
-class TelegramBot:
+class TelexBot:
     our_id = 0
     binlog_done = False
 
     def __init__(self):
-        self.plugin_manager = TelegramPluginManager(self)
+        self.plugin_manager = TelexPluginManager(self)
         self.plugin_manager.collectPlugins()
 
     # Util

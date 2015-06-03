@@ -1,1 +1,1 @@
-from telegrambot.telegrambot import *
+from telex.telexbot import *

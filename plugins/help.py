@@ -1,6 +1,6 @@
-from telegrambot.plugin import TelegramPlugin
+from telex.plugin import TelexPlugin
 
-class HelpPlugin(TelegramPlugin):
+class HelpPlugin(TelexPlugin):
     """
     Print help for telegram-bot and plugins
     """
