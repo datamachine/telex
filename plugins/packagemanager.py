@@ -19,7 +19,6 @@ from tempfile import TemporaryFile
 from telex import git, auth, plugin, packagerepo
 
 
-CENTRAL_REPO_URL="https://github.com/datamachine/telex-plugin-repo"
 CENTRAL_REPO_NAME="main"
 
 PKG_BASE_DIR="pkgs"
@@ -94,7 +93,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     def activate_plugin(self):
         if not self._get_repos_from_config():
-            self.write_option('repo.main', CENTRAL_REPO_URL)
+            self.write_option('repo.main', 'https://github.com/datamachine/telex-plugin-repo.git')
 
         self.repos = {}
         if not path.exists(PKG_BASE_DIR):
