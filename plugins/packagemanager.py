@@ -258,16 +258,15 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
 
     def list_all(self, msg, matches):
-        repo_name = CENTRAL_REPO_NAME
-
-        if repo_name not in self.repos.keys():
+        if not self.repos: 
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\".")
             return
 
-        results = ""
-        for pkg in self.repos.get(repo_name, {}).get("packages", []):
-            results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
-        return results
+        for repo_name in self.repos:
+            results = "{}:\n".format(repo_name)
+            for pkg in self.repos.get(repo_name, {}).get("packages", []):
+                results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
+            self.respond_to_msg(msg, results)
 
     def list_installed(self, msg, matches):
         pkg_install_dir = Path(PKG_INSTALL_DIR)
