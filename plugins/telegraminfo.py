@@ -2,8 +2,8 @@ from telex import plugin
 
 class TelegramInfoPlugin(plugin.TelexPlugin):
     patterns = [
-        "^!tginfo (id)",
-        "^!tginfo (repr) (.+)"
+        "^{prefix}tginfo (id)",
+        "^{prefix}tginfo (repr) (.+)"
     ]
 
     usage = [
