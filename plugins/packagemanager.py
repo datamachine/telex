@@ -33,7 +33,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     """
     patterns = {
         "^!pkg? (search) (.*)$": "search",
-        "^!pkg? (install) (.*)$": "install",
+        "^!pkg? install ((?P<repo_name>\S*)/){0,1}(?P<pkg_name>\S*)": "install",
         "^!pkg? (update)$": "update",
         "^!pkg? upgrade$": "upgrade_all",
         "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
@@ -127,43 +127,57 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     def install(self, msg, matches):
         if not self.repos:
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
+            return
 
-        repo_name = CENTRAL_REPO_NAME
+        repo_name = matches.groupdict()['repo_name']
+        pkg_name = matches.groupdict()['pkg_name']
+
+        if not repo_name:
+            repos_with_pkg = []
+            for r in self.repos:
+                for pkg in self.repos[r]['packages']:
+                    if pkg['pkg_name'] == pkg_name:
+                        repos_with_pkg.append(r)
+
+            if not repos_with_pkg:
+                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "!pkg update"'.format(pkg_name))
+                return
+
+            if len(repos_with_pkg) > 1:
+                self.respond_to_msg(msg, 'Package "{}" found in multiple repos. Please specify repo using:\n <repo_name>/<pkg_name>\nRepos with package: {}'.format(pkg_name, ', '.join(repos_with_pkg)))
+                return
+
+            repo_name = repos_with_pkg[0]
 
         if not path.exists(PKG_INSTALL_DIR):
             os.makedirs(PKG_INSTALL_DIR)
 
-        for pkg_name in matches.group(2).split():
-            url = None
-            pkg_data = None
+        pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
+        if not pkg_data:
+            self.respond_to_msg(msg, 'Package "{}" not found in repository "{}"'.format(pkg_name, repo_name))
+            return
+    
+        url = pkg_data["repo"]
 
-            if urlparse(matches.group(2)).scheme in ["http", "https"]:
-                url = pkg_name
-            else:
-                pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
-                if not pkg_data:
-                    self.respond_to_msg(msg, "Package not found in repository: {}".format(pkg_name))
-                    return
-                url = pkg_data["repo"]
+        if not url:
+            self.respond_to_msg(msg, 'Error: unable to retrieve url for package "{}"'.format(pkg_name))
+            return
 
-            if not url:
-                self.respond_to_msg(msg, "Invalid package name or url: {}".format(pkg_name))
+        gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
+        if gs.has_error():
+            self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
+            return
 
-            gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
-            if gs.has_error():
-                self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
-                return
+        pkg_req_path = self._pkg_requirements_path(pkg_name)
+        if os.path.exists(pkg_req_path):
+            pip.main(['install', '-r', pkg_req_path])
 
-            pkg_req_path = self._pkg_requirements_path(pkg_name)
-            if os.path.exists(pkg_req_path):
-                pip.main(['install', '-r', pkg_req_path])
+        self.reload_plugins()
+        for plugin_name in pkg_data.get("default_enable", []):
+            self.plugin_manager.activatePluginByName(plugin_name)
 
-            self.reload_plugins()
-            for plugin_name in pkg_data.get("default_enable", []):
-                self.plugin_manager.activatePluginByName(plugin_name)
-
-            self.plugin_manager.collectPlugins()
-            self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
+        self.plugin_manager.collectPlugins()
+        self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
 
     def _upgrade_pkg(self, msg, pkg_name):
         pkg_path = Path(PKG_INSTALL_DIR) / pkg_name
