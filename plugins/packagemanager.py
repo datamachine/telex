@@ -80,8 +80,11 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         if not pkg_repo_dir.exists():
             pkg_repo_dir.mkdir(parents=True)
 
+        repos = self._get_repos_from_config()
         self.repos = {}
         for repo in pkg_repo_dir.iterdir():
+            if repo.name not in repos:
+                continue 
             repo_json = self._load_repo_object(repo.name)
             if repo_json:
                 self.repos[repo.name] = repo_json               
@@ -90,6 +93,9 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             
 
     def activate_plugin(self):
+        if not self._get_repos_from_config():
+            self.write_option('repo.main', CENTRAL_REPO_URL)
+
         self.repos = {}
         if not path.exists(PKG_BASE_DIR):
             os.makedirs(PKG_BASE_DIR)
@@ -315,16 +321,12 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     @auth.authorize(groups=["admins"])
     def list_repos(self, msg, matches):
-        repos = []
-        for option in self.all_options():
-            if option.startswith("repo."):
-                repo_name = option[5:]
-                if not packagerepo.is_valid_repo_name(repo_name):
-                    self.respond_to_msg(msg, "invalid repo name: {}".format(repo_name))
-                else:
-                    repos += ["{}: {}".format(option[5:], self.read_option(option))]
-        return "\n".join(repos)
-        
+        repos = self._get_repos_from_config()
+        if not repos:
+            self.respond_to_msg(msg, "Warning: no repos found in config")
+            return
+
+        self.respond_to_msg(msg, '\n'.join(['{}: {}'.format(repo_name, pkg_name) for repo_name, pkg_name in self._get_repos_from_config().items()]))
  
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
