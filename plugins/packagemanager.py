@@ -19,7 +19,6 @@ from tempfile import TemporaryFile
 from telex import git, auth, plugin, packagerepo
 
 
-CENTRAL_REPO_URL="https://github.com/datamachine/telex-plugin-repo"
 CENTRAL_REPO_NAME="main"
 
 PKG_BASE_DIR="pkgs"
@@ -33,7 +32,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     """
     patterns = {
         "^!pkg? (search) (.*)$": "search",
-        "^!pkg? (install) (.*)$": "install",
+        "^!pkg? install ((?P<repo_name>\S*)/){0,1}(?P<pkg_name>\S*)": "install",
         "^!pkg? (update)$": "update",
         "^!pkg? upgrade$": "upgrade_all",
         "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
@@ -80,8 +79,11 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         if not pkg_repo_dir.exists():
             pkg_repo_dir.mkdir(parents=True)
 
+        repos = self._get_repos_from_config()
         self.repos = {}
         for repo in pkg_repo_dir.iterdir():
+            if repo.name not in repos:
+                continue 
             repo_json = self._load_repo_object(repo.name)
             if repo_json:
                 self.repos[repo.name] = repo_json               
@@ -90,6 +92,9 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             
 
     def activate_plugin(self):
+        if not self._get_repos_from_config():
+            self.write_option('repo.main', 'https://github.com/datamachine/telex-plugin-repo.git')
+
         self.repos = {}
         if not path.exists(PKG_BASE_DIR):
             os.makedirs(PKG_BASE_DIR)
@@ -127,43 +132,57 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     def install(self, msg, matches):
         if not self.repos:
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
+            return
 
-        repo_name = CENTRAL_REPO_NAME
+        repo_name = matches.groupdict()['repo_name']
+        pkg_name = matches.groupdict()['pkg_name']
 
-        if not path.exists(PKG_INSTALL_DIR):
-            os.makedirs(PKG_INSTALL_DIR)
+        if not repo_name:
+            repos_with_pkg = []
+            for r in self.repos:
+                for pkg in self.repos[r]['packages']:
+                    if pkg['pkg_name'] == pkg_name:
+                        repos_with_pkg.append(r)
 
-        for pkg_name in matches.group(2).split():
-            url = None
-            pkg_data = None
-
-            if urlparse(matches.group(2)).scheme in ["http", "https"]:
-                url = pkg_name
-            else:
-                pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
-                if not pkg_data:
-                    self.respond_to_msg(msg, "Package not found in repository: {}".format(pkg_name))
-                    return
-                url = pkg_data["repo"]
-
-            if not url:
-                self.respond_to_msg(msg, "Invalid package name or url: {}".format(pkg_name))
-
-            gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
-            if gs.has_error():
-                self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
+            if not repos_with_pkg:
+                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "!pkg update"'.format(pkg_name))
                 return
 
-            pkg_req_path = self._pkg_requirements_path(pkg_name)
-            if os.path.exists(pkg_req_path):
-                pip.main(['install', '-r', pkg_req_path])
+            if len(repos_with_pkg) > 1:
+                self.respond_to_msg(msg, 'Package "{}" found in multiple repos. Please specify repo using:\n <repo_name>/<pkg_name>\nRepos with package: {}'.format(pkg_name, ', '.join(repos_with_pkg)))
+                return
 
-            self.reload_plugins()
-            for plugin_name in pkg_data.get("default_enable", []):
-                self.plugin_manager.activatePluginByName(plugin_name)
+            repo_name = repos_with_pkg[0]
 
-            self.plugin_manager.collectPlugins()
-            self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
+        pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
+        if not pkg_data:
+            self.respond_to_msg(msg, 'Package "{}" not found in repository "{}"'.format(pkg_name, repo_name))
+            return
+    
+        url = pkg_data["repo"]
+        if not url:
+            self.respond_to_msg(msg, 'Error: unable to retrieve url for package "{}"'.format(pkg_name))
+            return
+
+        pkg_inst_path = Path(PKG_INSTALL_DIR) / repo_name
+        if not pkg_inst_path.exists():
+            pkg_inst_path.mkdir(parents=True)
+
+        gs = git.clone(url, pkg_data["pkg_name"], cwd=str(pkg_inst_path))
+        if gs.has_error():
+            self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
+            return
+
+        pkg_req_path = pkg_inst_path / "repo" / "repo.json"
+        if pkg_req_path.exists():
+            pip.main(['install', '-r', str(pkg_req_path)])
+
+        self.reload_plugins()
+        for plugin_name in pkg_data.get("default_enable", []):
+            self.plugin_manager.activatePluginByName(plugin_name)
+
+        self.plugin_manager.collectPlugins()
+        self.respond_to_msg(msg, "{}{}\nSuccessfully installed package: {}".format(gs.stdout, gs.stderr, pkg_name))
 
     def _upgrade_pkg(self, msg, pkg_name):
         pkg_path = Path(PKG_INSTALL_DIR) / pkg_name
@@ -210,70 +229,78 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         self.respond_to_msg(msg, "Unable to find package: {}".format(pkg_name))
 
     def search(self, msg, matches):
-        repo_name = CENTRAL_REPO_NAME
-        repo = self._get_repo(repo_name)
-        if not repo:
+        if not self.repos:
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
             return
 
-        query = matches.group(2)
-        prog = re.compile(query, flags=re.IGNORECASE)
-        results = ""
-        for pkg in repo.get("packages", []):
-            if prog.search(pkg["name"]) or prog.search(pkg["description"]):
-                results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
-        return results
+        for repo_name in self.repos:
+            repo = self._get_repo(repo_name)
+
+            query = matches.group(2)
+            prog = re.compile(query, flags=re.IGNORECASE)
+            results = "{}:\n".format(repo_name)
+            for pkg in repo.get("packages", []):
+                if prog.search(pkg["name"]) or prog.search(pkg["description"]):
+                    results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
+            self.respond_to_msg(msg, results)
+
+    def _get_repos_from_config(self):
+        return { name[5:]: self.read_option(name) for name in self.all_options() if name.startswith('repo.') }
 
     @auth.authorize(groups=["admins"])
     def update(self, msg, matches):
-        repo_name = CENTRAL_REPO_NAME
-        url = CENTRAL_REPO_URL
-        pkg_repo_dir = Path(PKG_REPO_DIR)
+        repos = self._get_repos_from_config()
 
+        if not repos:
+            self.respond_to_msg(msg, "Warning: there are no repos in the configuration")
+            return
+
+        pkg_repo_dir = Path(PKG_REPO_DIR)
         if not pkg_repo_dir.exists():
             pkg_repo_dir.mkdir(parents=True)
 
-        gs = None
-        if repo_name not in self._installed_repos():
-            gs = git.clone(url, directory=repo_name, cwd=PKG_REPO_DIR)
-        else:
-            repo_path = self._repo_path(repo_name)
-            git.reset(cwd=repo_path, hard=True)
-            gs = git.pull(cwd=repo_path)
+        for repo_name, url in repos.items():
+            gs = None
+            if repo_name not in self._installed_repos():
+                gs = git.clone(url, directory=repo_name, cwd=PKG_REPO_DIR)
+            else:
+                repo_path = self._repo_path(repo_name)
+                git.reset(cwd=repo_path, hard=True)
+                gs = git.pull(cwd=repo_path)
 
-        if not gs:
-            self.respond_to_msg(msg, "Unkown error updating repo: {}".format(repo_name))
-            return
+            if not gs:
+                self.respond_to_msg(msg, "Unkown error updating repo: {}".format(repo_name))
+                return
 
-        if not gs.has_error():
-            self._reload_repos(msg)
+            if not gs.has_error():
+                self._reload_repos(msg)
 
-        self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
+            self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
 
     def list_all(self, msg, matches):
-        repo_name = CENTRAL_REPO_NAME
-
-        if repo_name not in self.repos.keys():
+        if not self.repos: 
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\".")
             return
 
-        results = ""
-        for pkg in self.repos.get(repo_name, {}).get("packages", []):
-            results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
-        return results
+        for repo_name in self.repos:
+            results = "{}:\n".format(repo_name)
+            for pkg in self.repos.get(repo_name, {}).get("packages", []):
+                results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
+            self.respond_to_msg(msg, results)
 
     def list_installed(self, msg, matches):
         pkg_install_dir = Path(PKG_INSTALL_DIR)
         if not pkg_install_dir.exists():
             return "There are no packages installed"
 
-        pkgs = ""
-        for f in os.listdir(PKG_INSTALL_DIR):
-            repo_path = os.path.join(PKG_INSTALL_DIR, f)
-            repo_json = self.__get_repo_json_from_repo_path(repo_path)
-            if repo_json:
-                pkgs += "{} | {} | {}\n".format(f, repo_json["version"], repo_json["description"])
-        return pkgs
+        for repo_name in os.listdir(PKG_INSTALL_DIR):
+            pkgs = "{}:\n".format(repo_name)
+            for pkg_name in os.listdir(path.join(PKG_INSTALL_DIR, repo_name)):
+                repo_path = os.path.join(PKG_INSTALL_DIR, repo_name, pkg_name)
+                repo_json = self.__get_repo_json_from_repo_path(repo_path)
+                if repo_json:
+                    pkgs += "{} | {} | {}\n".format(pkg_name, repo_json["version"], repo_json["description"])
+            self.respond_to_msg(msg, pkgs)
 
     @auth.authorize(groups=["admins"])
     def add_repo(self, msg, matches):
@@ -293,16 +320,12 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     @auth.authorize(groups=["admins"])
     def list_repos(self, msg, matches):
-        repos = []
-        for option in self.all_options():
-            if option.startswith("repo."):
-                repo_name = option[5:]
-                if not packagerepo.is_valid_repo_name(repo_name):
-                    self.respond_to_msg(msg, "invalid repo name: {}".format(repo_name))
-                else:
-                    repos += ["{}: {}".format(option[5:], self.read_option(option))]
-        return "\n".join(repos)
-        
+        repos = self._get_repos_from_config()
+        if not repos:
+            self.respond_to_msg(msg, "Warning: no repos found in config")
+            return
+
+        self.respond_to_msg(msg, '\n'.join(['{}: {}'.format(repo_name, pkg_name) for repo_name, pkg_name in self._get_repos_from_config().items()]))
  
     def reload_plugins(self):
         self.plugin_manager.collectPlugins()
