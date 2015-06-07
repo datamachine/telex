@@ -210,19 +210,20 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         self.respond_to_msg(msg, "Unable to find package: {}".format(pkg_name))
 
     def search(self, msg, matches):
-        repo_name = CENTRAL_REPO_NAME
-        repo = self._get_repo(repo_name)
-        if not repo:
+        if not self.repos:
             self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
             return
 
-        query = matches.group(2)
-        prog = re.compile(query, flags=re.IGNORECASE)
-        results = ""
-        for pkg in repo.get("packages", []):
-            if prog.search(pkg["name"]) or prog.search(pkg["description"]):
-                results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
-        return results
+        for repo_name in self.repos:
+            repo = self._get_repo(repo_name)
+
+            query = matches.group(2)
+            prog = re.compile(query, flags=re.IGNORECASE)
+            results = "{}:\n".format(repo_name)
+            for pkg in repo.get("packages", []):
+                if prog.search(pkg["name"]) or prog.search(pkg["description"]):
+                    results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
+            self.respond_to_msg(msg, results)
 
     def _get_repos_from_config(self):
         return { name[5:]: self.read_option(name) for name in self.all_options() if name.startswith('repo.') }
