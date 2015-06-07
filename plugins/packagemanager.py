@@ -164,7 +164,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             self.respond_to_msg(msg, 'Error: unable to retrieve url for package "{}"'.format(pkg_name))
             return
 
-        pkg_inst_path = Path(PKG_INSTALL_DIR) / repo_name
+        pkg_inst_path = Path(PKG_INSTALL_DIR)
         if not pkg_inst_path.exists():
             pkg_inst_path.mkdir(parents=True)
 
@@ -173,9 +173,10 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
             return
 
-        pkg_req_path = pkg_inst_path / "repo" / "repo.json"
+        pkg_req_path = pkg_inst_path / pkg_name / "repository" / "requirements.txt"
+        print('\n\n{}\n\n'.format(pkg_req_path))
         if pkg_req_path.exists():
-            pip.main(['install', '-r', str(pkg_req_path)])
+            pip.main(['install', '--upgrade', '-r', str(pkg_req_path)])
 
         self.reload_plugins()
         for plugin_name in pkg_data.get("default_enable", []):
@@ -190,6 +191,12 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             self.respond_to_msg(msg, "Cannot upgrade \"{}\". Package does not appear to be installed.".format(pkg_name))
 
         gs = git.pull(str(pkg_path))
+
+        pkg_req_path = Path(PKG_INSTALL_DIR) / pkg_name / "repository" / "requirements.txt"
+        print('\n\n{}\n\n'.format(pkg_req_path))
+        if pkg_req_path.exists():
+            pip.main(['install', '--upgrade', '-r', str(pkg_req_path)])
+
         self.respond_to_msg(msg, "{} {}: {}{}".format(gs.exit_status, pkg_name, gs.stdout, gs.stderr))
         
 
@@ -293,14 +300,13 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         if not pkg_install_dir.exists():
             return "There are no packages installed"
 
-        for repo_name in os.listdir(PKG_INSTALL_DIR):
-            pkgs = "{}:\n".format(repo_name)
-            for pkg_name in os.listdir(path.join(PKG_INSTALL_DIR, repo_name)):
-                repo_path = os.path.join(PKG_INSTALL_DIR, repo_name, pkg_name)
-                repo_json = self.__get_repo_json_from_repo_path(repo_path)
-                if repo_json:
-                    pkgs += "{} | {} | {}\n".format(pkg_name, repo_json["version"], repo_json["description"])
-            self.respond_to_msg(msg, pkgs)
+        pkgs = ''
+        for pkg_name in os.listdir(PKG_INSTALL_DIR):
+            repo_path = os.path.join(PKG_INSTALL_DIR, pkg_name)
+            repo_json = self.__get_repo_json_from_repo_path(repo_path)
+            if repo_json:
+                pkgs += "{} | {} | {}\n".format(pkg_name, repo_json["version"], repo_json["description"])
+        self.respond_to_msg(msg, pkgs)
 
     @auth.authorize(groups=["admins"])
     def add_repo(self, msg, matches):
