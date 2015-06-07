@@ -1,6 +1,7 @@
 import tgl
 
 import re
+from configparser import ConfigParser
 from .TelexPluginManager import TelexPluginManager
 
 
@@ -11,6 +12,9 @@ class TelexBot:
     def __init__(self):
         self.plugin_manager = TelexPluginManager(self)
         self.plugin_manager.collectPlugins()
+        self.config = ConfigParser()
+        self.config.read('telex.conf')
+
 
     # Util
     def admin_check(self, msg):
@@ -61,6 +65,11 @@ class TelexBot:
 
         peer = self.get_peer_to_send(msg)
 
+        try:
+            pfx = self.config['Global']['command_prefix']
+        except KeyError:
+            pfx = "!"
+
         # run pre_process
         for plugin_info in self.plugin_manager.getAllPlugins():
             if plugin_info.plugin_object.is_activated:
@@ -73,6 +82,7 @@ class TelexBot:
             if type(plugin_info.plugin_object.patterns) is dict:
                 for pattern, func in plugin_info.plugin_object.patterns.items():
                     if plugin_info.plugin_object.is_activated and msg.text is not None:
+                        pattern = pattern.replace("{prefix}", pfx)
                         matches = re.search(pattern, msg.text)
                         if matches is not None:
                             if type(func) is str:
@@ -85,6 +95,7 @@ class TelexBot:
             elif  type(plugin_info.plugin_object.patterns) is list:
                 for pattern in plugin_info.plugin_object.patterns:
                     if plugin_info.plugin_object.is_activated and msg.text is not None:
+                        pattern = pattern.replace("{prefix}", pfx)
                         matches = re.search(pattern, msg.text)
                         if matches is not None:
                             reply = plugin_info.plugin_object.run(msg, matches)
