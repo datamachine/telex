@@ -149,28 +149,28 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
             repo_name = repos_with_pkg[0]
 
-        if not path.exists(PKG_INSTALL_DIR):
-            os.makedirs(PKG_INSTALL_DIR)
-
         pkg_data = self._pkg_data_from_repo(pkg_name, repo_name)
         if not pkg_data:
             self.respond_to_msg(msg, 'Package "{}" not found in repository "{}"'.format(pkg_name, repo_name))
             return
     
         url = pkg_data["repo"]
-
         if not url:
             self.respond_to_msg(msg, 'Error: unable to retrieve url for package "{}"'.format(pkg_name))
             return
 
-        gs = git.clone(url, pkg_data["pkg_name"], cwd=PKG_INSTALL_DIR)
+        pkg_inst_path = Path(PKG_INSTALL_DIR) / repo_name
+        if not pkg_inst_path.exists():
+            pkg_inst_path.mkdir(parents=True)
+
+        gs = git.clone(url, pkg_data["pkg_name"], cwd=str(pkg_inst_path))
         if gs.has_error():
             self.respond_to_msg(msg, "Error installing package \"{}\"\n{}{}".format(pkg_name, gs.stdout, gs.stderr))
             return
 
-        pkg_req_path = self._pkg_requirements_path(pkg_name)
-        if os.path.exists(pkg_req_path):
-            pip.main(['install', '-r', pkg_req_path])
+        pkg_req_path = pkg_inst_path / "repo" / "repo.json"
+        if pkg_req_path.exists():
+            pip.main(['install', '-r', str(pkg_req_path)])
 
         self.reload_plugins()
         for plugin_name in pkg_data.get("default_enable", []):
