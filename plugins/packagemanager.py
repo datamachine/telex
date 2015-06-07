@@ -288,13 +288,14 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         if not pkg_install_dir.exists():
             return "There are no packages installed"
 
-        pkgs = ""
-        for f in os.listdir(PKG_INSTALL_DIR):
-            repo_path = os.path.join(PKG_INSTALL_DIR, f)
-            repo_json = self.__get_repo_json_from_repo_path(repo_path)
-            if repo_json:
-                pkgs += "{} | {} | {}\n".format(f, repo_json["version"], repo_json["description"])
-        return pkgs
+        for repo_name in os.listdir(PKG_INSTALL_DIR):
+            pkgs = "{}:\n".format(repo_name)
+            for pkg_name in os.listdir(path.join(PKG_INSTALL_DIR, repo_name)):
+                repo_path = os.path.join(PKG_INSTALL_DIR, repo_name, pkg_name)
+                repo_json = self.__get_repo_json_from_repo_path(repo_path)
+                if repo_json:
+                    pkgs += "{} | {} | {}\n".format(pkg_name, repo_json["version"], repo_json["description"])
+            self.respond_to_msg(msg, pkgs)
 
     @auth.authorize(groups=["admins"])
     def add_repo(self, msg, matches):
