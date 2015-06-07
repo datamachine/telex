@@ -224,31 +224,38 @@ class PackageManagerPlugin(plugin.TelexPlugin):
                 results += "{} | {} | {}\n".format(pkg["pkg_name"], pkg["version"], pkg["description"])
         return results
 
+    def _get_repos_from_config(self):
+        return { name[5:]: self.read_option(name) for name in self.all_options() if name.startswith('repo.') }
+
     @auth.authorize(groups=["admins"])
     def update(self, msg, matches):
-        repo_name = CENTRAL_REPO_NAME
-        url = CENTRAL_REPO_URL
-        pkg_repo_dir = Path(PKG_REPO_DIR)
+        repos = self._get_repos_from_config()
 
+        if not repos:
+            self.respond_to_msg(msg, "Warning: there are no repos in the configuration")
+            return
+
+        pkg_repo_dir = Path(PKG_REPO_DIR)
         if not pkg_repo_dir.exists():
             pkg_repo_dir.mkdir(parents=True)
 
-        gs = None
-        if repo_name not in self._installed_repos():
-            gs = git.clone(url, directory=repo_name, cwd=PKG_REPO_DIR)
-        else:
-            repo_path = self._repo_path(repo_name)
-            git.reset(cwd=repo_path, hard=True)
-            gs = git.pull(cwd=repo_path)
+        for repo_name, url in repos.items():
+            gs = None
+            if repo_name not in self._installed_repos():
+                gs = git.clone(url, directory=repo_name, cwd=PKG_REPO_DIR)
+            else:
+                repo_path = self._repo_path(repo_name)
+                git.reset(cwd=repo_path, hard=True)
+                gs = git.pull(cwd=repo_path)
 
-        if not gs:
-            self.respond_to_msg(msg, "Unkown error updating repo: {}".format(repo_name))
-            return
+            if not gs:
+                self.respond_to_msg(msg, "Unkown error updating repo: {}".format(repo_name))
+                return
 
-        if not gs.has_error():
-            self._reload_repos(msg)
+            if not gs.has_error():
+                self._reload_repos(msg)
 
-        self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
+            self.respond_to_msg(msg, "{}: {}{}".format(repo_name, gs.stdout, gs.stderr))
 
     def list_all(self, msg, matches):
         repo_name = CENTRAL_REPO_NAME
