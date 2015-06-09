@@ -53,13 +53,13 @@ else
     exit 1
   fi
 
-  PYTHONHOME="$THIS_DIR/.virtualenv" ./tg/bin/telegram-cli -k ./tg/tg-server.pub -Z ./runner.py -l 1 &
+  PYTHONHOME="$THIS_DIR/.virtualenv" ./tg/bin/telegram-cli -E -k ./tg/tg-server.pub -Z ./runner.py -l 1 &
   while [[ -n $(jobs -p) ]]; do
       if [[ -e "reload" ]]; then
         rm -vf "reload"
         echo RELOADING BOT
         kill $(jobs -p)
-        PYTHONHOME="$THIS_DIR/.virtualenv" ./tg/bin/telegram-cli -k ./tg/tg-server.pub -Z ./runner.py -l 1 &
+        PYTHONHOME="$THIS_DIR/.virtualenv" ./tg/bin/telegram-cli -E -k ./tg/tg-server.pub -Z ./runner.py -l 1 &
       fi
       sleep 1
   done
