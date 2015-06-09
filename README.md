@@ -8,7 +8,7 @@ Everything is being written for Python 3.4 currently. Everything works in a virt
 
 There are not a ton of useful plugins by default, but you can run ``` !pkg update ``` and then ``` !pkg list all ``` to see what plugins are available to install.
 
-Some plugins require admin permissions. You can set an admin in permissions.conf using the followig format
+Some plugins require admin permissions. You can set an admin in permissions.conf using the following format
 
 ```
 [groups]
@@ -37,15 +37,17 @@ Steps:
 
 ##### Linux and BSDs
 
-Install libs: readline, openssl and (if you want to use config) libconfig, liblua, python3-dev, virtualenv and libjansson.
+Install libs: readline, openssl and (if you want to use config) libconfig, liblua, python3-dev, python-virtualenv and libjansson.
+
+Note: Installation was tested only on Ubuntu and Debian
 
 ###### On Ubuntu/Debian use: 
 
-    sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev python3-dev virtualenv make 
+    sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev libjansson-dev python3-dev python-virtualenv make 
 
 ###### On gentoo:
 
-    sudo emerge -av sys-libs/readline dev-libs/libconfig dev-libs/openssl dev-lang/lua dev-libs/libevent dev-libs/jansson dev-lang/python3 dev-python/virtualenv 
+    sudo emerge -av sys-libs/readline dev-libs/libconfig dev-libs/openssl dev-lang/lua dev-libs/libevent dev-libs/jansson dev-lang/python-3 dev-python/virtualenv 
 
 ###### On Fedora:
 
@@ -82,7 +84,7 @@ To check if you have upstart, just run
 
     sudo start
 
-If output something like this, then you have upstart.
+If output is something like this, then you have upstart.
 
     start: missing job name
     Try `start --help' for more information.
