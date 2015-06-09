@@ -95,6 +95,7 @@ class TelexBot:
                             reply = func(msg, matches)
                             if reply is not None:
                                 peer.send_msg(reply)
+                            tgl.mark_read(peer)
             elif  type(plugin_info.plugin_object.patterns) is list:
                 for pattern in plugin_info.plugin_object.patterns:
                     if plugin_info.plugin_object.is_activated and msg.text is not None:
@@ -105,8 +106,8 @@ class TelexBot:
 
                             if reply is not None:
                                 peer.send_msg(reply)
+                            tgl.mark_read(peer)
 
-        tgl.mark_read(peer)
 
     def on_secret_chat_update(self, peer, types):
         pass
