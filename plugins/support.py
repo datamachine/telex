@@ -2,11 +2,11 @@ from telex import plugin
 
 class SupportPlugin(plugin.TelexPlugin):
     patterns = {
-        "^!support": "list_support_contact_info"
+        "^{prefix}support": "list_support_contact_info"
     }
 
     usage = [
-        "!support: lists support contact info",
+        "{prefix}support: lists support contact info",
     ]
 
     def list_support_contact_info(self, msg, matches):
