@@ -15,7 +15,7 @@ class HelpPlugin(TelexPlugin):
     ]
 
     def run(self, msg, matches):
-        if matches.group(0) == "{prefix}help":
+        if matches.group(0)[1:] == "help":
             return self.telegram_help()
 
         text = self.plugin_help(matches.group(1))
