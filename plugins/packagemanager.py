@@ -31,30 +31,30 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     telegram-pybot's package manager
     """
     patterns = {
-        "^!pkg? (search) (.*)$": "search",
-        "^!pkg? install ((?P<repo_name>\S*)/){0,1}(?P<pkg_name>\S*)": "install",
-        "^!pkg? (update)$": "update",
-        "^!pkg? upgrade$": "upgrade_all",
-        "^!pkg? upgrade ([\w-]+)$": "upgrade_pkg",
-        "^!pkg? (uninstall) (.*)$": "uninstall",
-        "^!pkg? (list)$": "list_installed",
-        "^!pkg? (list[\s_]all)$": "list_all",
-        "^!pkg list[\s_]repos$": "list_repos",
-        #"^!pkg? add[\s_]repo (?P<repo_name>[\w\-]+) (?P<repo_url>[\S]+)$": "add_repo",
+        "^{prefix}pkg? (search) (.*)$": "search",
+        "^{prefix}pkg? install ((?P<repo_name>\S*)/){0,1}(?P<pkg_name>\S*)": "install",
+        "^{prefix}pkg? (update)$": "update",
+        "^{prefix}pkg? upgrade$": "upgrade_all",
+        "^{prefix}pkg? upgrade ([\w-]+)$": "upgrade_pkg",
+        "^{prefix}pkg? (uninstall) (.*)$": "uninstall",
+        "^{prefix}pkg? (list)$": "list_installed",
+        "^{prefix}pkg? (list[\s_]all)$": "list_all",
+        "^{prefix}pkg list[\s_]repos$": "list_repos",
+        #"^{prefix}pkg? add[\s_]repo (?P<repo_name>[\w\-]+) (?P<repo_url>[\S]+)$": "add_repo",
     }
 
     usage = [
         "Package Command:",
-        "!pkg search <query>: Search the repo for packages",
-        "!pkg update: Update the package repo cache",
-        "!pkg upgrade [pkg_name]: Update to latest version of all or specified pkg",
-        "!pkg install <package name>: Install a package",
-        "!pkg uninstall <package name>: Uninstall a package",
-        "!pkg list: List installed packages",
-        "!pkg list all: List packages in the repo",
+        "{prefix}pkg search <query>: Search the repo for packages",
+        "{prefix}pkg update: Update the package repo cache",
+        "{prefix}pkg upgrade [pkg_name]: Update to latest version of all or specified pkg",
+        "{prefix}pkg install <package name>: Install a package",
+        "{prefix}pkg uninstall <package name>: Uninstall a package",
+        "{prefix}pkg list: List installed packages",
+        "{prefix}pkg list all: List packages in the repo",
         "Repository Commands:",
-        "!pkg list repos",
-        #"!pkg add repo <repo_name>",
+        "{prefix}pkg list repos",
+        #"{prefix}pkg add repo <repo_name>",
     ]
 
     def _installed_repos(self):
@@ -131,7 +131,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     @auth.authorize(groups=["admins"])
     def install(self, msg, matches):
         if not self.repos:
-            self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\"")
             return
 
         repo_name = matches.groupdict()['repo_name']
@@ -145,7 +145,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
                         repos_with_pkg.append(r)
 
             if not repos_with_pkg:
-                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "!pkg update"'.format(pkg_name))
+                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "{prefix}pkg update"'.format(pkg_name))
                 return
 
             if len(repos_with_pkg) > 1:
@@ -237,7 +237,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     def search(self, msg, matches):
         if not self.repos:
-            self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\"")
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\"")
             return
 
         for repo_name in self.repos:
@@ -286,7 +286,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     def list_all(self, msg, matches):
         if not self.repos: 
-            self.respond_to_msg(msg, "Cannot locate repo. Try running \"!pkg update\".")
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\".")
             return
 
         for repo_name in self.repos:
