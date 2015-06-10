@@ -50,5 +50,6 @@ class TelexPlugin(IPlugin):
         pass
 
     def respond_to_msg(self, src_msg, msg_text, **kwargs):
+        msg_text = msg_text.replace('{prefix}', self.bot.pfx)
         self.bot.get_peer_to_send(src_msg).send_msg(msg_text, **kwargs)
 
