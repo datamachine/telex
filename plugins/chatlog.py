@@ -86,7 +86,7 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         # TODO Support Media Msgs
         values = [[msg.id, msg.date, msg.src.id, msg.src.username or '',
                    "{0} {1}".format(msg.src.first_name or '', msg.src.last_name or ''),
-                   msg.dest.id, msg.text] for msg in msgs if hasattr(msg, 'text') and None not in [msg.src, msg.dest]
+                   msg.dest.id, msg.text] for msg in msgs if hasattr(msg, 'text') and None not in [msg.src, msg.dest]]
         columns = ['msg_id', 'timestamp', 'uid', 'username', 'full_name', 'chat_id', 'message']
 
         self.insert_many(columns, values)
