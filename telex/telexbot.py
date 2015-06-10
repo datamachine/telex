@@ -14,7 +14,10 @@ class TelexBot:
         self.plugin_manager.collectPlugins()
         self.config = ConfigParser()
         self.config.read('telex.conf')
-
+        try:
+            self.pfx = self.config['Global']['command_prefix']
+        except KeyError:
+            self.pfx = "!"
 
     # Util
     def admin_check(self, msg):
@@ -65,17 +68,10 @@ class TelexBot:
 
         peer = self.get_peer_to_send(msg)
 
-        try:
-            pfx = self.config['Global']['command_prefix']
-        except KeyError:
-            pfx = "!"
-
         # run pre_process
         for plugin_info in self.plugin_manager.getAllPlugins():
             if plugin_info.plugin_object.is_activated:
                 plugin_info.plugin_object.pre_process(msg)
-
-
 
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
@@ -85,7 +81,7 @@ class TelexBot:
             if type(plugin_info.plugin_object.patterns) is dict:
                 for pattern, func in plugin_info.plugin_object.patterns.items():
                     if plugin_info.plugin_object.is_activated and msg.text is not None:
-                        pattern = pattern.replace("{prefix}", pfx)
+                        pattern = pattern.replace("{prefix}", self.pfx)
                         matches = re.search(pattern, msg.text)
                         if matches is not None:
                             if type(func) is str:
@@ -99,7 +95,7 @@ class TelexBot:
             elif  type(plugin_info.plugin_object.patterns) is list:
                 for pattern in plugin_info.plugin_object.patterns:
                     if plugin_info.plugin_object.is_activated and msg.text is not None:
-                        pattern = pattern.replace("{prefix}", pfx)
+                        pattern = pattern.replace("{prefix}", self.pfx)
                         matches = re.search(pattern, msg.text)
                         if matches is not None:
                             reply = plugin_info.plugin_object.run(msg, matches)
