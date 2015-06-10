@@ -33,6 +33,7 @@ class HelpPlugin(TelexPlugin):
                 text = "{0}: {1}\n".format(plugin.name, plugin.description)
                 if hasattr(plugin.plugin_object, 'usage'):
                     text += "\n".join(plugin.plugin_object.usage)
+                    text = text.replace('{prefix}', self.bot.pfx)
                 else:
                     text += "No Usage Help"
             else:
