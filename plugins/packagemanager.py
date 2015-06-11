@@ -131,7 +131,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
     @auth.authorize(groups=["admins"])
     def install(self, msg, matches):
         if not self.repos:
-            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\"")
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\"".replace('{prefix}', self.bot.pfx))
             return
 
         repo_name = matches.groupdict()['repo_name']
@@ -145,7 +145,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
                         repos_with_pkg.append(r)
 
             if not repos_with_pkg:
-                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "{prefix}pkg update"'.format(pkg_name))
+                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "{prefix}pkg update"'.format(pkg_name).replace('{prefix}', self.bot.pfx))
                 return
 
             if len(repos_with_pkg) > 1:
@@ -237,7 +237,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     def search(self, msg, matches):
         if not self.repos:
-            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\"")
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\"".replace('{prefix}', self.bot.pfx))
             return
 
         for repo_name in self.repos:
@@ -286,7 +286,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
     def list_all(self, msg, matches):
         if not self.repos: 
-            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\".")
+            self.respond_to_msg(msg, "Cannot locate repo. Try running \"{prefix}pkg update\".".replace('{prefix}', self.bot.pfx))
             return
 
         for repo_name in self.repos:
