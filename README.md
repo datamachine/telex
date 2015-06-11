@@ -91,9 +91,9 @@ If output is ```exist``` then you have systemd and you can continue with below s
 
 Edit the config file:
 
-    sed -i "s/<username>/$(whoami)/g" temp/telex.service
-    sed -i "s/<telexpath>/$(pwd)/g" temp/telex.service
-    sudo cp temp/telex.service /etc/systemd/system/
+    sed -i "s/<username>/$(whoami)/g" etc/telex.service
+    sed -i "s/<telexpath>/$(pwd)/g" etc/telex.service
+    sudo cp etc/telex.service /etc/systemd/system/
 
 Enabling service:
 
@@ -119,9 +119,9 @@ If output is ```exist``` then you have upstart and you can continue with below s
 
 Edit the config file:
 
-    sed -i "s/<username>/$(whoami)/g" temp/telex.conf
-    sed -i "s/<telexpath>/$(pwd)/g" temp/telex.conf
-    sudo cp temp/telex.conf /etc/init/
+    sed -i "s/<username>/$(whoami)/g" etc/telex.conf
+    sed -i "s/<telexpath>/$(pwd)/g" etc/telex.conf
+    sudo cp etc/telex.conf /etc/init/
 
 Starting/Stopping telex:
 
