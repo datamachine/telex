@@ -5,17 +5,17 @@ class HelpPlugin(TelexPlugin):
     Print help for telegram-bot and plugins
     """
     patterns = [
-        "^!help$",
-        "^!help (.+)",
+        "^{prefix}help$",
+        "^{prefix}help (.+)",
     ]
 
     usage = [
-        "!help: Show list of plugins.",
-        "!help [plugin name]: Commands for that plugin."
+        "{prefix}help: Show list of plugins.",
+        "{prefix}help [plugin name]: Commands for that plugin."
     ]
 
     def run(self, msg, matches):
-        if matches.group(0) == "!help":
+        if matches.group(0)[1:] == "help":
             return self.telegram_help()
 
         text = self.plugin_help(matches.group(1))
@@ -48,6 +48,7 @@ class HelpPlugin(TelexPlugin):
             if plugin.plugin_object.is_activated:
                 text += "{0}: {1}\n".format(plugin.name, plugin.description)
 
-        text += "\n Write \"!help [plugin name]\" for more info"
+        text += "\n Write \"{prefix}help [plugin name]\" for more info"
+        text = text.replace('{prefix}', self.bot.pfx)
 
         return text

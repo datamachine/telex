@@ -5,11 +5,11 @@ class EchoPlugin(plugin.TelexPlugin):
     Just print the contents of the command
     """
     patterns = [
-        "^!echo (.*)"
+        "^{prefix}echo (.*)"
     ]
 
     usage = [
-        "!echo msg: echoes the msg",
+        "{prefix}echo msg: echoes the msg",
     ]
 
     def run(self, msg, matches):

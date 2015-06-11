@@ -9,18 +9,18 @@ class PluginsPlugin(TelexPlugin):
     Plugin to manage other plugins. Enable, disable or reload.
     """
     patterns = {
-        "^!plugins$": "list_plugins",
-        "^!plugins? (enable) ([\w_.-]+)$": "enable_plugin",
-        "^!plugins? (disable) ([\w_.-]+)$": "disable_plugin",
-        "^!plugins? (reload)$": "reload_plugins"
+        "^{prefix}plugins$": "list_plugins",
+        "^{prefix}plugins? (enable) ([\w_.-]+)$": "enable_plugin",
+        "^{prefix}plugins? (disable) ([\w_.-]+)$": "disable_plugin",
+        "^{prefix}plugins? (reload)$": "reload_plugins"
     }
 
     usage = [
-        "!plugins: list all plugins.",
-        "!plugins enable [plugin]: enable plugin.",
-        "!plugins disable [plugin]: disable plugin.",
-        # "!plugins disable [plugin] chat: disable plugin only this chat.",
-        "!plugins reload: reloads all plugins."
+        "{prefix}plugins: list all plugins.",
+        "{prefix}plugins enable [plugin]: enable plugin.",
+        "{prefix}plugins disable [plugin]: disable plugin.",
+        # "{prefix}plugins disable [plugin] chat: disable plugin only this chat.",
+        "{prefix}plugins reload: reloads all plugins."
     ]
 
     @auth.authorize(groups=["admins"])

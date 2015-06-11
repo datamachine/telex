@@ -8,15 +8,15 @@ class ConfigPlugin(plugin.TelexPlugin):
     Plugin to manage other plugin configuration.
     """
     patterns = {
-        "^!config ([\w-]+) show$": "show_options",
-        "^!config ([\w-]+) set ([\w-]+) \"(.+)\"": "set_option",
-        "^!config ([\w-]+) get ([\w-]+)": "get_option",
+        "^{prefix}config ([\w-]+) show$": "show_options",
+        "^{prefix}config ([\w-]+) set ([\w-]+) \"(.+)\"": "set_option",
+        "^{prefix}config ([\w-]+) get ([\w-]+)": "get_option",
     }
 
     usage = [
-        "!config <plugin_name> show: List all plugin options",
-        "!config <plugin_name> set <configname> \"<value>\": Get plugin value.",
-        "!config <plugin_name> get <configname>: Get config value.",
+        "{prefix}config <plugin_name> show: List all plugin options",
+        "{prefix}config <plugin_name> set <configname> \"<value>\": Get plugin value.",
+        "{prefix}config <plugin_name> get <configname>: Get config value.",
     ]
 
     @auth.authorize(groups=["admins"])

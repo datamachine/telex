@@ -13,21 +13,21 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
     """
 
     patterns = {
-        "^!quote$": "get_random_quote",
-        "^!addquote (.*)": "add_quote",
-        "^!quotethis$": "add_reply",
-        "^!delquote ([0-9]+)$": "del_quote",
-        "^!getquote ([0-9]+)$": "get_quote",
-        "^!findquote (.*)": "find_quote",
+        "^{prefix}quote$": "get_random_quote",
+        "^{prefix}addquote (.*)": "add_quote",
+        "^{prefix}quotethis$": "add_reply",
+        "^{prefix}delquote ([0-9]+)$": "del_quote",
+        "^{prefix}getquote ([0-9]+)$": "get_quote",
+        "^{prefix}findquote (.*)": "find_quote",
     }
 
     usage = [
-        "!quote: return random quote",
-        "!addquote Text To Quote: add quote",
-        "!quotethis: Add quote from a reply",
-        "!findquote Text To Search: Search quote list, returning up to 5 answers",
-        "!getquote [quote_id]: Get specific quote by id",
-        "!delquote [quote_id]: (Admin) Delete quote from database",
+        "{prefix}quote: return random quote",
+        "{prefix}addquote Text To Quote: add quote",
+        "{prefix}quotethis: Add quote from a reply",
+        "{prefix}findquote Text To Search: Search quote list, returning up to 5 answers",
+        "{prefix}getquote [quote_id]: Get specific quote by id",
+        "{prefix}delquote [quote_id]: (Admin) Delete quote from database",
     ]
 
     schema = {
