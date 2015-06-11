@@ -77,7 +77,35 @@ To start the bot, run the following in telex directory.
 
     ./launch
 
-### Running bot as a service
+### Running telex as a service
+
+#### For systems with systemd
+
+If you have [systemd](http://www.freedesktop.org/wiki/Software/systemd/), you can run the bot as a service by following the below procedure.
+
+To check if you have systemd, run 
+
+    if test -d /usr/lib/systemd; then echo "exist"; else echo "doesn't exist"; fi
+
+If output is ```exist``` then you have systemd and you can continue with below steps.
+
+Edit the config file:
+
+    sed -i "s/<username>/$(whoami)/g" temp/telex.service
+    sed -i "s/<telexpath>/$(pwd)/g" temp/telex.service
+    sudo cp temp/telex.service /etc/systemd/system/
+
+Enabling service:
+
+    sudo systemctl enable telex.service
+
+Starting/Stopping telex:
+
+    sudo systemctl start telex.service # To start it
+    sudo systemctl status telex.service # To check status
+    sudo systemctl stop telex.service # To stop it
+
+Make sure that the status is Active: active (running)
 
 #### For systems with upstart
 
@@ -89,31 +117,19 @@ To check if you have upstart, run
 
 If output is ```exist``` then you have upstart and you can continue with below steps.
 
-Edit the config file.
+Edit the config file:
 
     sed -i "s/<username>/$(whoami)/g" temp/telex.conf
     sed -i "s/<telexpath>/$(pwd)/g" temp/telex.conf
     sudo cp temp/telex.conf /etc/init/
+
+Starting/Stopping telex:
+
     sudo start telex # To start it
     sudo stop telex # To stop it
 
-
-#### For systems with systemd
-If you have [systemd](http://www.freedesktop.org/wiki/Software/systemd/), you can run the bot as a service by following the below procedure.
-
-To check if you have systemd, run 
-
-    if test -d /usr/lib/systemd; then echo "exist"; else echo "doesn't exist"; fi
-
-If output is ```exist``` then you have systemd and you can continue with below steps.
-
-Edit the config file.
-
-    sed -i "s/<username>/$(whoami)/g" temp/telex.conf
-    sed -i "s/<telexpath>/$(pwd)/g" temp/telex.conf
-    sudo cp temp/telex.conf /etc/init/
-    sudo start telex # To start it
-    sudo stop telex # To stop it
+#### For Mac
+ Follow insrucions here: http://superuser.com/questions/264954/can-i-use-a-bash-script-as-a-service-in-os-x-without-having-to-set-it-up-trough
 
 # Notes
 While already very capable, this bot is still in relatively early development. Some plugin names, or plugin API calls may be modifed. However, we are starting to settle on our stable APIs.
