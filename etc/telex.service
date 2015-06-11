@@ -1,0 +1,12 @@
+[Unit]
+Description=Telex bot server
+Wants=multi-user.target
+
+[Service]
+ExecStart=/bin/bash <telexpath>/launch.sh
+User=<username>
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=telex

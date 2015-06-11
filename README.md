@@ -77,27 +77,59 @@ To start the bot, run the following in telex directory.
 
     ./launch
 
-### Running bot as a service
+### Running telex as a service
+
+#### For systems with systemd
+
+If you have [systemd](http://www.freedesktop.org/wiki/Software/systemd/), you can run the bot as a service by following the below procedure.
+
+To check if you have systemd, run 
+
+    if test -d /usr/lib/systemd; then echo "exist"; else echo "doesn't exist"; fi
+
+If output is ```exist``` then you have systemd and you can continue with below steps.
+
+Edit the config file:
+
+    sed -i "s/<username>/$(whoami)/g" etc/telex.service
+    sed -i "s/<telexpath>/$(pwd)/g" etc/telex.service
+    sudo cp etc/telex.service /etc/systemd/system/
+
+Enabling service:
+
+    sudo systemctl enable telex.service
+
+Starting/Stopping telex:
+
+    sudo systemctl start telex.service # To start it
+    sudo systemctl status telex.service # To check status
+    sudo systemctl stop telex.service # To stop it
+
+Make sure that the status is Active: active (running)
+
+#### For systems with upstart
+
 If you have [upstart](http://upstart.ubuntu.com/), you can run the bot as a service by following the below procedure.
 
-To check if you have upstart, just run 
+To check if you have upstart, run 
 
-    sudo start
+    if test -d /usr/lib/upstart; then echo "exist"; else echo "doesn't exist"; fi
 
-If output is something like this, then you have upstart.
+If output is ```exist``` then you have upstart and you can continue with below steps.
 
-    start: missing job name
-    Try `start --help' for more information.
-Edit the config file.
+Edit the config file:
 
-    sed -i "s/yourusername/$(whoami)/g" temp/telex.conf
-    sed -i "s_telegrambotpath_$(pwd)_g" temp/telex.conf
-    sudo cp temp/telex.conf /etc/init/
+    sed -i "s/<username>/$(whoami)/g" etc/telex.conf
+    sed -i "s/<telexpath>/$(pwd)/g" etc/telex.conf
+    sudo cp etc/telex.conf /etc/init/
+
+Starting/Stopping telex:
+
     sudo start telex # To start it
     sudo stop telex # To stop it
 
-
-
+#### For Mac
+ Follow insrucions here: http://superuser.com/questions/264954/can-i-use-a-bash-script-as-a-service-in-os-x-without-having-to-set-it-up-trough
 
 # Notes
 While already very capable, this bot is still in relatively early development. Some plugin names, or plugin API calls may be modifed. However, we are starting to settle on our stable APIs.
