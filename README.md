@@ -78,26 +78,42 @@ To start the bot, run the following in telex directory.
     ./launch
 
 ### Running bot as a service
+
+#### For systems with upstart
+
 If you have [upstart](http://upstart.ubuntu.com/), you can run the bot as a service by following the below procedure.
 
-To check if you have upstart, just run 
+To check if you have upstart, run 
 
-    sudo start
+    if test -d /usr/lib/upstart; then echo "exist"; else echo "doesn't exist"; fi
 
-If output is something like this, then you have upstart.
+If output is ```exist``` then you have upstart and you can continue with below steps.
 
-    start: missing job name
-    Try `start --help' for more information.
 Edit the config file.
 
-    sed -i "s/yourusername/$(whoami)/g" temp/telex.conf
-    sed -i "s_telegrambotpath_$(pwd)_g" temp/telex.conf
+    sed -i "s/<username>/$(whoami)/g" temp/telex.conf
+    sed -i "s/<telexpath>/$(pwd)/g" temp/telex.conf
     sudo cp temp/telex.conf /etc/init/
     sudo start telex # To start it
     sudo stop telex # To stop it
 
 
+#### For systems with systemd
+If you have [systemd](http://www.freedesktop.org/wiki/Software/systemd/), you can run the bot as a service by following the below procedure.
 
+To check if you have systemd, run 
+
+    if test -d /usr/lib/systemd; then echo "exist"; else echo "doesn't exist"; fi
+
+If output is ```exist``` then you have systemd and you can continue with below steps.
+
+Edit the config file.
+
+    sed -i "s/<username>/$(whoami)/g" temp/telex.conf
+    sed -i "s/<telexpath>/$(pwd)/g" temp/telex.conf
+    sudo cp temp/telex.conf /etc/init/
+    sudo start telex # To start it
+    sudo stop telex # To stop it
 
 # Notes
 While already very capable, this bot is still in relatively early development. Some plugin names, or plugin API calls may be modifed. However, we are starting to settle on our stable APIs.
