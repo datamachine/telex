@@ -1,4 +1,4 @@
-from yapsy.IPlugin import IPlugin
+from .IPlugin import IPlugin
 
 class TelexPlugin(IPlugin):
     def __init__(self):

@@ -1,4 +1,4 @@
-from yapsy.ConfigurablePluginManager import ConfigurablePluginManager
+from telex.plugin.ConfigurablePluginManager import ConfigurablePluginManager
 import configparser
 
 
