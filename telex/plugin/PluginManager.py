@@ -452,7 +452,6 @@ class PluginManager(object):
         attempt.  The ``plugin_info`` instance is passed as an argument to
         the callback.
         """
-#         print "%s.loadPlugins" % self.__class__
         if not hasattr(self, '_candidates'):
             raise ValueError("locatePlugins must be called before loadPlugins")
 
@@ -535,7 +534,6 @@ class PluginManager(object):
         for each plugin candidate look for its category, load it and
         stores it in the appropriate slot of the category_mapping.
         """
-#         print "%s.collectPlugins" % self.__class__        
         self.locatePlugins()
         self.loadPlugins()
 
@@ -653,10 +651,8 @@ class PluginManagerSingleton(object):
         if self.__instance is None:
             if self.__decoration_chain is not None:
                 # Get the object to be decorated
-#                print self.__decoration_chain
                 pm = self.__decoration_chain[0]()
                 for cls_item in self.__decoration_chain[1:]:
-#                    print cls_item
                     pm = cls_item(decorated_manager=pm)
                 # Decorate the whole object
                 self.__instance = pm
