@@ -87,7 +87,6 @@ class PluginManagerDecorator(object):
         Decorator trick copied from:
         http://www.pasteur.fr/formation/infobio/python/ch18s06.html
         """
-#         print "looking for %s in %s" % (name, self.__class__)
         return getattr(self._component,name)
         
     
