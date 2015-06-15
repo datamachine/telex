@@ -397,7 +397,6 @@ class PluginFileLocator(IPluginLocator):
 
         Return the candidates and number of plugins found.
         """
-#         print "%s.locatePlugins" % self.__class__
         _candidates = []
         _discovered = {}
         for directory in map(os.path.abspath, self.plugins_places):
@@ -416,9 +415,7 @@ class PluginFileLocator(IPluginLocator):
             for item in walk_iter:
                 dirpath = item[0]
                 for filename in item[2]:
-                    # print("testing candidate file %s" % filename)
                     for analyzer in self._analyzers:
-                        # print("... with analyzer %s" % analyzer.name)
                         # eliminate the obvious non plugin files
                         if not analyzer.isValidPlugin(filename):
                             log.debug("%s is not a valid plugin for strategy %s" % (filename, analyzer.name))
@@ -428,7 +425,6 @@ class PluginFileLocator(IPluginLocator):
                             log.debug("%s (with strategy %s) rejected because already discovered" % (candidate_infofile, analyzer.name))
                             continue
                         log.debug("%s found a candidate:\n    %s" % (self.__class__.__name__, candidate_infofile))
-#                        print candidate_infofile
                         plugin_info = self._getInfoForPluginFromAnalyzer(analyzer, dirpath, filename)
                         if plugin_info is None:
                             log.warning("Plugin candidate '%s'  rejected by strategy '%s'" % (candidate_infofile, analyzer.name))
@@ -436,7 +432,6 @@ class PluginFileLocator(IPluginLocator):
                         # now determine the path of the file to execute,
                         # depending on wether the path indicated is a
                         # directory or a file
-#                    print plugin_info.path
                         # Remember all the files belonging to a discovered
                         # plugin, so that strategies (if several in use) won't
                         # collide
@@ -457,12 +452,10 @@ class PluginFileLocator(IPluginLocator):
                         else:
                             log.error("Plugin candidate rejected: cannot find the file or directory module for '%s'" % (candidate_infofile))
                             break
-#                    print candidate_filepath
                         _candidates.append((candidate_infofile, candidate_filepath, plugin_info))
                         # finally the candidate_infofile must not be discovered again
                         _discovered[candidate_infofile] = candidate_filepath
                         self._discovered_plugins[candidate_infofile] = candidate_filepath
-#                        print "%s found by strategy %s" % (candidate_filepath, analyzer.name)
         return _candidates, len(_candidates)
 
     def gatherCorePluginInfo(self, directory, filename):
