@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from tempfile import TemporaryFile
 
 from telex import git, auth, plugin, packagerepo
+from telex.plugin.callbacks import on_msg_received
 
 
 CENTRAL_REPO_NAME="main"
@@ -90,7 +91,6 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             elif msg:
                 self.respond_to_msg(msg, "Error reloading repo: {}".format(repo.name))
             
-
     def activate_plugin(self):
         if not self._get_repos_from_config():
             self.write_option('repo.main', 'https://github.com/datamachine/telex-plugin-repo.git')
@@ -127,6 +127,10 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         except:
             pass
         return None
+
+    @on_msg_received
+    def new_install(self, msg):
+        pass
 
     @auth.authorize(groups=["admins"])
     def install(self, msg, matches):
