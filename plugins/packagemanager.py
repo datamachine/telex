@@ -130,7 +130,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         return None
 
     @on_msg_received
-    @filters.rematch
+    @filters.match('/echo')
     def new_install(self, *, msg):
         self.respond_to_msg(msg, 'message received: {}'.format(msg.text))
 
