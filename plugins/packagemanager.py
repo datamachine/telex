@@ -17,7 +17,8 @@ from urllib.parse import urlparse
 from tempfile import TemporaryFile
 
 from telex import git, auth, plugin, packagerepo
-from telex.plugin.callbacks import on_msg_received
+from telex.callbacks import on_msg_received
+from telex.callbacks import filters
 
 
 CENTRAL_REPO_NAME="main"
@@ -129,8 +130,9 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         return None
 
     @on_msg_received
-    def new_install(self, msg):
-        pass
+    @filters.rematch
+    def new_install(self, *, msg):
+        self.respond_to_msg(msg, 'message received: {}'.format(msg.text))
 
     @auth.authorize(groups=["admins"])
     def install(self, msg, matches):
