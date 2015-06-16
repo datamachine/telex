@@ -68,6 +68,17 @@ class TelexBot:
 
         peer = self.get_peer_to_send(msg)
 
+        # new callback WIP
+        on_msg_received_callbacks = []
+        for plugin_info in self.plugin_manager.getAllPlugins():
+            plugin = plugin_info.plugin_object
+            if not plugin.is_activated:
+                continue
+            on_msg_received_callbacks += [getattr(plugin, attr) for attr in dir(plugin) if hasattr(getattr(plugin, attr), '_telex_plugin_callback_on_msg_received')]
+        for cb in on_msg_received_callbacks:
+            cb(msg)
+        # end new cb WIP
+
         # run pre_process
         for plugin_info in self.plugin_manager.getAllPlugins():
             if plugin_info.plugin_object.is_activated:
