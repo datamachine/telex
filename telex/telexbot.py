@@ -76,7 +76,7 @@ class TelexBot:
                 continue
             on_msg_received_callbacks += [getattr(plugin, attr) for attr in dir(plugin) if hasattr(getattr(plugin, attr), '_telex_plugin_callback_on_msg_received')]
         for cb in on_msg_received_callbacks:
-            cb(msg)
+            cb(msg=msg)
         # end new cb WIP
 
         # run pre_process
