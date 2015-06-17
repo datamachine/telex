@@ -6,11 +6,11 @@ def msg_received(func):
     set_callback_kind(func, MSG_RECEIVED)
     return func
 
-def command(command, aliases=None):
+def command(cmd, aliases=None):
     def _command(func):
-        def _wrapper(*args, msg, **kwargs):
-            if msg.text.startswith(command):
-                return func(*args, msg=msg, **kwargs)
+        def _wrapper(*args, bot, msg, **kwargs):
+            if msg.text.startswith('{}{}'.format(bot.pfx, cmd)):
+                return func(*args, bot=bot, msg=msg, **kwargs)
         return _wrapper
     return _command
 

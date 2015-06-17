@@ -81,8 +81,8 @@ class TelexBot:
                     callback_type = getattr(attr, '_telex_callback')
                     if callback_type == MSG_RECEIVED:
                         on_msg_received_callbacks.append(attr)
-        for cb in on_msg_received_callbacks:
-            cb(msg=msg)
+        for callback in on_msg_received_callbacks:
+            callback(bot=self, msg=msg)
         # end new cb WIP
 
         # run pre_process
@@ -93,7 +93,7 @@ class TelexBot:
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
             if not hasattr(plugin_info.plugin_object, 'patterns'):
-                print('ERROR: plugin "{}" does not has required "patterns" list/dict'.format(plugin_info.name))
+                print('ERROR: plugin "{}" does not have required "patterns" list/dict'.format(plugin_info.name))
                 continue
             if type(plugin_info.plugin_object.patterns) is dict:
                 for pattern, func in plugin_info.plugin_object.patterns.items():

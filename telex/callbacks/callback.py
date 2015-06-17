@@ -13,6 +13,8 @@ _CallBackSignatureRequirements = {}
 _CallBackSignatureRequirements[MSG_RECEIVED] = dict(keywords=['msg'])
 
 def _validate_signature(func, *, keywords=None):
+    keywords = set(['bot'] + keywords)
+
     from inspect import signature, Parameter
     sig = signature(func)
     missing_kw_only = []

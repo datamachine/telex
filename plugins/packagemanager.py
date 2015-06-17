@@ -130,8 +130,8 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
 
     @msg_received
-    @command('/test')
-    def new_install(self, *, msg):
+    @command('test')
+    def new_install(self, *, bot, msg):
         self.respond_to_msg(msg, 'message received: {}'.format(msg.text))
 
     @auth.authorize(groups=["admins"])
