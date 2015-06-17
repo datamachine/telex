@@ -1,6 +1,6 @@
 from functools import wraps
 
-from .callbacks import callback
+from .callback import callback
 
 def match(expr):
     import re

@@ -63,6 +63,7 @@ class TelexBot:
         return "Set ID: " + str(self.our_id)
 
     def on_msg_receive(self, msg):
+        from telex.callbacks.kind import MSG_RECEIVED
         if msg.out or not self.binlog_done:
             return
 
@@ -74,7 +75,12 @@ class TelexBot:
             plugin = plugin_info.plugin_object
             if not plugin.is_activated:
                 continue
-            on_msg_received_callbacks += [getattr(plugin, attr) for attr in dir(plugin) if hasattr(getattr(plugin, attr), '_telex_plugin_callback_on_msg_received')]
+            for attr_name in dir(plugin):
+                attr = getattr(plugin, attr_name)
+                if hasattr(attr, '_telex_callback'):
+                    callback_type = getattr(attr, '_telex_callback')
+                    if callback_type == MSG_RECEIVED:
+                        on_msg_received_callbacks.append(attr)
         for cb in on_msg_received_callbacks:
             cb(msg=msg)
         # end new cb WIP

@@ -1,10 +1,10 @@
 from enum import Enum
 
-from .callback import *
+from .callback import validate_signature, set_callback_kind
+from .kind import MSG_RECEIVED
 
-@callback(kind=MSG_RECEIVED)
-def on_msg_received(func):
-    on_msg_received._telex_validate_signature(func)
-    setattr(func, '_telex_plugin_callback_on_msg_received', True)
+def msg_received(func):
+    validate_signature(func, keywords=['msg'])
+    set_callback_kind(func, MSG_RECEIVED)
     return func
 
