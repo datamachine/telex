@@ -32,3 +32,8 @@ def set_callback_kind(func, kind:_CallbackKind):
     validate_signature(func, kind)
     setattr(func, '_telex_callback', _CallbackKind(kind))
 
+def callback(kind):
+    def _callback(func):
+        set_callback_kind(func, kind)
+        return func
+    return _callback
