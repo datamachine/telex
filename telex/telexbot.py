@@ -63,7 +63,7 @@ class TelexBot:
         return "Set ID: " + str(self.our_id)
 
     def on_msg_receive(self, msg):
-        from telex.callbacks.kind import MSG_RECEIVED
+        from telex.callbacks.callback import MSG_RECEIVED
         if msg.out or not self.binlog_done:
             return
 

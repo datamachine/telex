@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 from tempfile import TemporaryFile
 
 from telex import git, auth, plugin, packagerepo
-from telex.callbacks.msgreceived import msg_received
+from telex.callbacks.msgreceived import msg_received, command
 
 
 CENTRAL_REPO_NAME="main"
@@ -130,6 +130,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
 
 
     @msg_received
+    @command('/test')
     def new_install(self, *, msg):
         self.respond_to_msg(msg, 'message received: {}'.format(msg.text))
 

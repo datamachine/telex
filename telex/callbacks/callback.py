@@ -1,10 +1,18 @@
 from inspect import signature, Parameter
-from .kind import _CallbackKind, _validate_signature
+from enum import Enum, unique
+from inspect import signature, Parameter
+from functools import partial
 
-def set_callback_kind(func, kind:_CallbackKind):
-    setattr(func, '_telex_callback', _CallbackKind(kind))
+@unique
+class _CallbackKind(str, Enum):
+    _MSG_RECEIVED = '_telex_callback_msgreceived'
 
-def validate_signature(func, *, keywords=None):
+MSG_RECEIVED = _CallbackKind._MSG_RECEIVED
+
+_CallBackSignatureRequirements = {}
+_CallBackSignatureRequirements[MSG_RECEIVED] = dict(keywords=['msg'])
+
+def _validate_signature(func, *, keywords=None):
     from inspect import signature, Parameter
     sig = signature(func)
     missing_kw_only = []
@@ -15,4 +23,10 @@ def validate_signature(func, *, keywords=None):
     if missing_kw_only:
         raise SyntaxError('"{}: {}" missiong kwonly arg(s): {}'.format(func.__module__, func.__qualname__, ', '.join(missing_kw_only)))
 
+def validate_signature(func, kind:_CallbackKind):
+    _validate_signature(func, **_CallBackSignatureRequirements[kind])
+
+def set_callback_kind(func, kind:_CallbackKind):
+    validate_signature(func, kind)
+    setattr(func, '_telex_callback', _CallbackKind(kind))
 
