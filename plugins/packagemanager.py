@@ -128,7 +128,6 @@ class PackageManagerPlugin(plugin.TelexPlugin):
             pass
         return None
 
-
     @command('test')
     def new_install(self, *, bot, msg):
         self.respond_to_msg(msg, 'message received: {}'.format(msg.text))
