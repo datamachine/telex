@@ -19,4 +19,16 @@ def command(cmd, aliases=None):
                 return func(*args, bot=bot, msg=msg, **kwargs)
         return _wrapper
     return _command
-
+    
+def expand(expr):
+    def _expand(func):
+        @msg_received
+        @wraps(func)
+        def _wrapper(*args, bot, msg, **kwargs):
+            match = re.search(expr, msg.text)
+            if match:
+                keyword_args = kwargs.copy()
+                keyword_args.update(match.groupdict())
+                return func(*args, bot=bot, msg=msg, **keyword_args)
+        return _wrapper
+    return _expand
