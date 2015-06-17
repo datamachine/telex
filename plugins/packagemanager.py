@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 from tempfile import TemporaryFile
 
 from telex import git, auth, plugin, packagerepo
-from telex.callbacks import on_msg_received
+from telex.callbacks.msgreceived import on_msg_received
 from telex.callbacks import filters
 
 
@@ -130,7 +130,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
         return None
 
     @on_msg_received
-    @filters.match('/echo')
+    @filters.command('test')
     def new_install(self, *, msg):
         self.respond_to_msg(msg, 'message received: {}'.format(msg.text))
 
