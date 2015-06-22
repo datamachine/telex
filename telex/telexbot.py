@@ -73,8 +73,6 @@ class TelexBot:
             return
         if(msg.date <= datetime.now()-timedelta(seconds=self.accepted_delay)):
             return
-        if msg.text == None:
-            return
         
         peer = self.get_peer_to_send(msg)
 
