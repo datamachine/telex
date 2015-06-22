@@ -1,6 +1,6 @@
+import re
 from enum import Enum
 from functools import wraps
-
 from .callback import callback, MSG_RECEIVED
 
 def msg_received(func):

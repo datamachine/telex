@@ -1,6 +1,7 @@
 import tgl
 
 import re
+from datetime import datetime, timedelta
 from configparser import ConfigParser
 from .TelexPluginManager import TelexPluginManager
 
@@ -18,6 +19,10 @@ class TelexBot:
             self.pfx = self.config['Global']['command_prefix']
         except KeyError:
             self.pfx = "!"
+        try:
+            self.accepted_delay = self.config['Global']['accepted_delay']
+        except KeyError:
+            self.accepted_delay = 30        #in secs
 
     # Util
     def admin_check(self, msg):
@@ -66,7 +71,9 @@ class TelexBot:
         from telex.callbacks.callback import MSG_RECEIVED
         if msg.out or not self.binlog_done:
             return
-
+        if(msg.date <= datetime.now()-timedelta(seconds=self.accepted_delay)):
+            return
+        
         peer = self.get_peer_to_send(msg)
 
         # new callback WIP
