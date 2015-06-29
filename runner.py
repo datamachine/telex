@@ -1,17 +1,14 @@
-import tgl
+from twx.twx import TWXBotApi
 from telex import TelexBot
+import configparser
 
-bot = TelexBot()
+config = configparser.ConfigParser()
+config.read('telex.conf')
+
+backend = TWXBotApi(token=config['Backend']['token'])
+bot = TelexBot(backend)
 
 # Set callbacks
-tgl.set_on_binlog_replay_end(bot.on_binlog_replay_end)
-tgl.set_on_get_difference_end(bot.on_get_difference_end)
-tgl.set_on_our_id(bot.on_our_id)
-tgl.set_on_msg_receive(bot.on_msg_receive)
-tgl.set_on_secret_chat_update(bot.on_secret_chat_update)
-tgl.set_on_user_update(bot.on_user_update)
-tgl.set_on_chat_update(bot.on_chat_update)
-tgl.set_on_loop(bot.on_loop)
-
-# TODO: Make this configurable
-tgl.set_link_preview(False)
+backend.on_msg_receive = bot.on_msg_receive
+backend.on_user_update = bot.on_user_update
+backend.on_chat_update = bot.on_chat_update

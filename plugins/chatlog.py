@@ -1,4 +1,4 @@
-import tgl
+import twx
 from telex.DatabaseMixin import DatabaseMixin, DbType
 from telex.utils.decorators import group_only
 from functools import partial
@@ -67,7 +67,7 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
     def load_history(self, msg, matches):
         chat = msg.dest
         msg_count = 0
-        tgl.get_history(chat, msg_count,
+        twx.get_history(chat, msg_count,
                         self.HISTORY_QUERY_SIZE,
                         partial(self.history_cb, msg_count, chat))
 
@@ -76,11 +76,11 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
             self.insert_history(msgs)
             msg_count += len(msgs)
             if len(msgs) == self.HISTORY_QUERY_SIZE:
-                tgl.get_history(chat, msg_count,
+                twx.get_history(chat, msg_count,
                                 self.HISTORY_QUERY_SIZE,
                                 partial(self.history_cb, msg_count, chat))
             else:
-                tgl.send_msg(chat, "Loaded {0} messaged into the table".format(msg_count))
+                twx.send_message(chat, "Loaded {0} messaged into the table".format(msg_count))
 
     def insert_history(self, msgs):
         # TODO Support Media Msgs

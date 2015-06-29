@@ -1,4 +1,4 @@
-import tgl
+import twx
 from telex.DatabaseMixin import DatabaseMixin, DbType
 from telex import auth
 from telex.utils.decorators import group_only
@@ -112,7 +112,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
         if not hasattr(msg, 'reply_id'):
             return "The !quotethis must be used in a reply!"
         if not hasattr(msg, 'reply') or msg.reply is None:
-            return "The reply is too old, cannot add it." # TODO look into fix in tgl that can't load from server
+            return "The reply is too old, cannot add it." # TODO look into fix in twx that can't load from server
         if not hasattr(msg.reply, 'text'):
             return "Media message replys not supported currently."
 

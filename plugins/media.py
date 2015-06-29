@@ -1,5 +1,5 @@
 from telex.plugin import TelexPlugin
-import tgl
+import twx
 
 class MediaPlugin(TelexPlugin):
     """
@@ -19,5 +19,5 @@ class MediaPlugin(TelexPlugin):
             return
         filename = self.bot.download_to_file(matches.group(1), matches.group(2))
         if filename:
-           peer = self.bot.get_peer_to_send(msg)
-           tgl.send_document(peer, filename)
+            peer = self.bot.get_peer_to_send(msg)
+            twx.send_document(peer, filename)

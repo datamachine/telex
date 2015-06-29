@@ -1,7 +1,7 @@
 # Telex
 A Telegram Bot based on plugins. 
 
-This bot uses tg and tgl C libraries for its bindings, and we have been contributing our python bindings as we work through it.
+This bot uses tg and twx C libraries for its bindings, and we have been contributing our python bindings as we work through it.
 
 Everything is being written for Python 3.4 currently. Everything works in a virtualenv installed and sourced in the launch script.
 

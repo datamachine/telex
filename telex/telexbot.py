@@ -1,4 +1,4 @@
-import tgl
+import twx
 
 import re
 from datetime import datetime, timedelta
@@ -7,10 +7,8 @@ from .TelexPluginManager import TelexPluginManager
 
 
 class TelexBot:
-    our_id = 0
-    binlog_done = False
-
-    def __init__(self):
+    def __init__(self, twx):
+        self.backend = twx
         self.plugin_manager = TelexPluginManager(self)
         self.plugin_manager.collectPlugins()
         self.config = ConfigParser()
@@ -20,7 +18,7 @@ class TelexBot:
         except KeyError:
             self.pfx = "!"
         try:
-            self.accepted_delay = self.config['Global']['accepted_delay']
+            self.accepted_delay = int(self.config['Global']['accepted_delay'])
         except KeyError:
             self.accepted_delay = 30        #in secs
 
@@ -30,11 +28,11 @@ class TelexBot:
             return True
         else:
             peer = self.get_peer_to_send(msg)
-            peer.send_msg("Admin required for this feature")
+            peer.send_message("Admin required for this feature")
             return False
 
     def get_peer_to_send(self, msg):
-        if msg.dest.id == self.our_id:  # direct message
+        if msg.dest.id == self.backend.bot_id:  # direct message
             peer = msg.src
         else:  # chat room
             peer = msg.dest
@@ -54,24 +52,11 @@ class TelexBot:
             return None
 
     # Callbacks
-    def on_loop(self):
-        pass
-
-    def on_binlog_replay_end(self):
-        self.binlog_done = True
-
-    def on_get_difference_end(self):
-        pass
-
-    def on_our_id(self, current_id):
-        self.our_id = current_id
-        return "Set ID: " + str(self.our_id)
-
     def on_msg_receive(self, msg):
         from telex.callbacks.callback import MSG_RECEIVED
-        if msg.out or not self.binlog_done:
+        if msg.out:
             return
-        if(msg.date <= datetime.now()-timedelta(seconds=self.accepted_delay)):
+        if msg.date <= datetime.now() - timedelta(seconds=self.accepted_delay):
             return
         
         peer = self.get_peer_to_send(msg)
@@ -114,9 +99,9 @@ class TelexBot:
                                 func = plugin_info.plugin_object.run
                             reply = func(msg, matches)
                             if reply is not None:
-                                peer.send_msg(reply)
-                            tgl.mark_read(peer)
-            elif  type(plugin_info.plugin_object.patterns) is list:
+                                peer.send_message(reply)
+                            peer.mark_read()
+            elif type(plugin_info.plugin_object.patterns) is list:
                 for pattern in plugin_info.plugin_object.patterns:
                     if plugin_info.plugin_object.is_activated and msg.text is not None:
                         pattern = pattern.replace("{prefix}", self.pfx)
@@ -125,9 +110,8 @@ class TelexBot:
                             reply = plugin_info.plugin_object.run(msg, matches)
 
                             if reply is not None:
-                                peer.send_msg(reply)
-                            tgl.mark_read(peer)
-
+                                peer.send_message(reply)
+                            peer.mark_read()
 
     def on_secret_chat_update(self, peer, types):
         pass
