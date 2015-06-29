@@ -15,3 +15,6 @@ backend.on_chat_update = bot.on_chat_update
 
 # Start backend main loop
 backend.start()
+
+# TODO: Do we still want this to be set via callback?
+bot.our_id = backend.bot_id
