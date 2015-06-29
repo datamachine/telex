@@ -15,7 +15,7 @@ def command(cmd, aliases=None):
         @msg_received
         @wraps(func)
         def _wrapper(*args, bot, msg, **kwargs):
-            if msg.text.startswith('{}{}'.format(bot.pfx, cmd)):
+            if msg.text and msg.text.startswith('{}{}'.format(bot.pfx, cmd)):
                 return func(*args, bot=bot, msg=msg, **kwargs)
         return _wrapper
     return _command
