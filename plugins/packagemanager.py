@@ -149,7 +149,7 @@ class PackageManagerPlugin(plugin.TelexPlugin):
                         repos_with_pkg.append(r)
 
             if not repos_with_pkg:
-                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "{prefix}pkg update"'.format(pkg_name).replace('{prefix}', self.bot.pfx))
+                self.respond_to_msg(msg, 'Cannot find pkg "{}" in any repos.\nTry running "{prefix}pkg update"'.replace('{prefix}', self.bot.pfx).format(pkg_name))
                 return
 
             if len(repos_with_pkg) > 1:
