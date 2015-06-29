@@ -12,3 +12,6 @@ bot = TelexBot(backend)
 backend.on_msg_receive = bot.on_msg_receive
 backend.on_user_update = bot.on_user_update
 backend.on_chat_update = bot.on_chat_update
+
+# Start backend main loop
+backend.start()
