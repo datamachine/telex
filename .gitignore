@@ -5,7 +5,7 @@ data/data.db
 .virtualenv
 log.txt
 plugins.conf
-telegram-bot.conf
+telex.conf
 plugins.repos
 plugins.trash
 pkgs
