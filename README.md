@@ -140,7 +140,7 @@ With that said, we do strive to have the bot continue to function seemlessly whe
 
 The primary developers are Vince (@Surye) and Phillip (@Tyrannosaurus) and can be contacted directly through telegram.
 
-You can also join our telegram group using the link: https://telegram.me/joinchat/05c5c2f60112fa104d1c0c563b2fd34a
+You can also join our telegram group using the link: https://telegram.me/joinchat/BcXC9gES-hANjNJ-N53Qhg
 
 Bug reports and issues can be reported at: https://github.com/datamachine/telex/issues
 
