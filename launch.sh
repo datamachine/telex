@@ -21,7 +21,6 @@ install_packages() {
   . .virtualenv/bin/activate
   pip install -r requirements.txt
 }
-@vhdmsm in fact, Telex only works with Python 3 right now, you will have to build telex as follows:
 
 install() {
   git pull
