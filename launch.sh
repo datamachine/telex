@@ -21,11 +21,12 @@ install_packages() {
   . .virtualenv/bin/activate
   pip install -r requirements.txt
 }
+@vhdmsm in fact, Telex only works with Python 3 right now, you will have to build telex as follows:
 
 install() {
   git pull
   git submodule update --init --recursive --remote
-  cd tg && ./configure --disable-liblua --enable-python && make
+  cd tg && ./configure --disable-liblua --enable-python LDFLAGS="$(python3-config --ldflags)" CFLAGS='-Wno-builtin-memcpy-chk-size' && make
   RET=$?; if [ $RET -ne 0 ];
     then echo "Error. Exiting."; exit $RET;
   fi
