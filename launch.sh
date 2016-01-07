@@ -5,6 +5,7 @@ cd $THIS_DIR
 
 update() {
   git pull
+  git sync --recursive
   git submodule update --init --recursive --remote
   install_packages
 }
