@@ -1,4 +1,4 @@
-from twx import TWXBotApi
+from twx.twx import TWXBotApi
 from telex import TelexBot
 import configparser
 
