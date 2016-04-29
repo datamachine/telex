@@ -544,7 +544,7 @@ class PluginManager(object):
         """
         if category in self.category_mapping:
             for item in self.category_mapping[category]:
-                if item.name == name:
+                if item.name.upper() == name.upper():
                     return item
         return None
 
