@@ -3,5 +3,5 @@ httplib2==0.9.1
 #nflgame==1.2.14
 pytz==2015.4
 six==1.9.0
--e git+git@github.com:datamachine/twx.botapi.git@873b889b4d968002d729307d0a4c735a17556205#egg=twx.botapi
-
+-e git://github.com/datamachine/twx.botapi.git#egg=twx.botapi
+-e git://github.com/datamachine/twx.git#egg=twx
