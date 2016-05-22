@@ -1,0 +1,9 @@
+[Core]
+Name = Nutrition
+Module = nutrition
+
+[Documentation]
+Author = Vincent Castellano
+Version = 1.0
+Website = https://github.com/datamachine/telex-nutrition
+Description = Get nutrition data from nutritionix
