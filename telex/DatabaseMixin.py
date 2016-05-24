@@ -1,7 +1,13 @@
 import sqlite3
 from enum import Enum
 import logging
+import re
 
+def regexp(item, expr):
+    if item is None:
+        return False
+    reg = re.compile(expr, re.I)
+    return reg.search(item) is not None
 
 class DatabaseMixin():
     def __init__(self):
@@ -13,6 +19,7 @@ class DatabaseMixin():
 
     def get_conn(self):
         conn = sqlite3.connect('data/data.sqlite')
+        conn.create_function('REGEXP', 2, regexp)
         conn.row_factory = DatabaseMixin.dict_factory
         return conn
 

@@ -15,7 +15,9 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         "^{prefix}stats$": "stats_count",
         "^{prefix}stats_pattern (.*)": "stats_pattern",
         "^{prefix}loadhistory$": "load_history",
-        "^{prefix}seen (([0-9]+)|@(.*)|(.*))": "seen"
+        "^{prefix}seen (([0-9]+)|@(.*)|(.*))": "seen",
+        "^{prefix}stats_recent ?([\d]*?)$": "stats_count_recent",
+        "^{prefix}stats_regex (.*)": "stats_regex",
     }
 
     usage = [
@@ -23,6 +25,8 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         "{prefix}stats_pattern %somepattern%: returns stats filtered by SQL LIKE style pattern",
         "{prefix}seen (uid|@username|full name): Find the last time someone said something in the current chat",
         "{prefix}loadhistory: (Admin) load chatlog database from telegram history.",
+        "{prefix}stats_recent (num_of_days): Stats for the only the last n days.",
+        "{prefix}stats_regex pattern: Returns stats filtered by python style regex (case insensitive)",
     ]
 
     schema = {
@@ -91,23 +95,41 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
 
         self.insert_many(columns, values)
 
+
+    @group_only
+    def stats_count_recent(self, msg, matches):
+        if matches.group(1) is not None:
+            return self.get_stats(msg.dest.id, recent=matches.group(1))
+        else:
+            return self.get_stats(msg.dest.id, recent=90)
+
+
+    @group_only
+    def stats_regex(self, msg, matches):
+        return self.get_stats(msg.dest.id, regex=matches.group(1))
+
     @group_only
     def stats_count(self, msg, matches):
         return self.get_stats(msg.dest.id)
 
     @group_only
     def stats_pattern(self, msg, matches):
-        return self.get_stats(msg.dest.id, matches.group(1))
+        return self.get_stats(msg.dest.id, pattern=matches.group(1))
 
-    def get_stats(self, chat_id, pattern=None):
+    def get_stats(self, chat_id, pattern=None, regex=None, recent=None):
         pattern_query = ""
+        recent_query = ""
         if pattern is not None:
             pattern_query = " AND message LIKE ? "
+        if regex is not None:
+            pattern_query = " AND REGEXP(message, ?) "
+            pattern = regex
+        if recent is not None:
+            recent_query = " AND timestamp > DATETIME('now', '-{} day') ".format(recent)
 
-        query = """SELECT full_name, uid, COUNT(*) as count FROM {0}
-                   WHERE uid != {1} AND chat_id = {2} {3} GROUP BY uid
-                   ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id, pattern_query)
-
+        query = """SELECT full_name, uid, COUNT(*) as count, ROUND(AVG(LENGTH(message)),2) as avglen FROM {0}
+                   WHERE uid != {1} AND chat_id = {2} {3} {4} GROUP BY uid
+                   ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id, pattern_query, recent_query)
         if(pattern is not None):
             results = self.query(query, parameters=(pattern,))
         else:
@@ -116,10 +138,13 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         if results is None or len(results) == 0:
            return "No stats match!"
 
-        text = "Channel Chat Statistics (count):\n"
+        text = "Channel Chat Statistics (count) (avg len):\n"
+        if recent is not None:
+            text += "Recent Chat Only (last {} days)\n".format(recent)
         for result in results:
-            text += "{name}: {count}\n".format(name=result["full_name"],
-                                               count=result["count"])
+            text += "{name}: {count} ({avglen})\n".format(name=result["full_name"],
+                                                          count=result["count"],
+                                                          avglen=result["avglen"])
         return text
 
 
