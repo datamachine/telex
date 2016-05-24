@@ -43,7 +43,7 @@ class NutritionPlugin(TelexPlugin):
                     nutrition = { nutr['usda_tag']: "{:.2f} {}".format(nutr['value'], nutr['unit']) for nutr in
                         jdata['total']['nutrients'] }
 
-                    return '{name} ({weight} g): {kcal}, Fat: {fat} (PUF: {puf}, MUF: {mf}, SF: {sf}), Protein: {protein}\n Total Carbs: {carbs}, Sugar: {sugar}, Fiber: {fiber}'.format(
+                    return '{name} ({weight} g): {kcal}\nFat: {fat} (PUF: {puf}, MUF: {mf}, SF: {sf})\nProtein: {protein}\nTotal Carbs: {carbs}\n    Sugar: {sugar}\n    Fiber: {fiber}'.format(
                         name=matches.group(1),
                         kcal=nutrition['ENERC_KCAL'],
                         weight=jdata['total']['serving_weight_grams'],
