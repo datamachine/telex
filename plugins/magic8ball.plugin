@@ -1,0 +1,9 @@
+[Core]
+Name = Magic8Ball
+Module = magic8ball
+
+[Documentation]
+Author = Stuart Hertzig
+Version = 0.1
+Website = https://github.com/function10/telegram-pybot-magic-eight-ball
+Description = Ask me a question.

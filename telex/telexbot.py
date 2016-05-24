@@ -1,5 +1,3 @@
-import twx
-
 import re
 from datetime import datetime, timedelta
 from configparser import ConfigParser
@@ -84,8 +82,10 @@ class TelexBot:
 
         # run matches
         for plugin_info in self.plugin_manager.getAllPlugins():
+            if plugin_info.name == "RemindMe":
+                pass
             if not hasattr(plugin_info.plugin_object, 'patterns'):
-                # print('ERROR: plugin "{}" does not have required "patterns" list/dict'.format(plugin_info.name))
+                print('ERROR: plugin "{}" does not have required "patterns" list/dict'.format(plugin_info.name))
                 continue
             if type(plugin_info.plugin_object.patterns) is dict:
                 for pattern, func in plugin_info.plugin_object.patterns.items():

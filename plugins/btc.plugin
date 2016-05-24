@@ -1,0 +1,9 @@
+[Core]
+Name = BTC
+Module = btc
+
+[Documentation]
+Author = Vincent Castellano
+Version = 0.1
+Website = https://github.com/datamachine/telex
+Description = Retrieve BTC prices
