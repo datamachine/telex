@@ -54,7 +54,7 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         self.insert(msg_id=msg.id, timestamp=msg.date,
                     uid=msg.src.id, username=username,
                     full_name="{0} {1}".format(msg.src.first_name, msg.src.last_name or ''),
-                    chat_id=msg.dest.id, message=msg.text)
+                    chat_id=abs(msg.dest.id), message=msg.text)
 
     @group_only
     def seen(self, msg, matches):
@@ -62,9 +62,9 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         if matches.group(2) is not None:
             return self.seen_by_id(chat_id, matches.group(2))
         elif matches.group(3) is not None:
-            return self.seen_by_username(chat_id, matches.group(3))
+            return self.seen_by_username(abs(chat_id), matches.group(3))
         else:
-            return self.seen_by_fullname(chat_id, matches.group(4))
+            return self.seen_by_fullname(abs(chat_id), matches.group(4))
 
 
     @group_only
@@ -90,7 +90,7 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         # TODO Support Media Msgs
         values = [[msg.id, msg.date, msg.src.id, msg.src.username or '',
                    "{0} {1}".format(msg.src.first_name or '', msg.src.last_name or ''),
-                   msg.dest.id, msg.text] for msg in msgs if hasattr(msg, 'text') and None not in [msg.src, msg.dest]]
+                   abs(msg.dest.id), msg.text] for msg in msgs if hasattr(msg, 'text') and None not in [msg.src, msg.dest]]
         columns = ['msg_id', 'timestamp', 'uid', 'username', 'full_name', 'chat_id', 'message']
 
         self.insert_many(columns, values)
@@ -99,22 +99,22 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
     @group_only
     def stats_count_recent(self, msg, matches):
         if matches.group(1) is not None:
-            return self.get_stats(msg.dest.id, recent=matches.group(1))
+            return self.get_stats(abs(msg.dest.id), recent=matches.group(1))
         else:
-            return self.get_stats(msg.dest.id, recent=90)
+            return self.get_stats(abs(msg.dest.id), recent=90)
 
 
     @group_only
     def stats_regex(self, msg, matches):
-        return self.get_stats(msg.dest.id, regex=matches.group(1))
+        return self.get_stats(abs(msg.dest.id), regex=matches.group(1))
 
     @group_only
     def stats_count(self, msg, matches):
-        return self.get_stats(msg.dest.id)
+        return self.get_stats(abs(msg.dest.id))
 
     @group_only
     def stats_pattern(self, msg, matches):
-        return self.get_stats(msg.dest.id, pattern=matches.group(1))
+        return self.get_stats(abs(msg.dest.id), pattern=matches.group(1))
 
     def get_stats(self, chat_id, pattern=None, regex=None, recent=None):
         pattern_query = ""

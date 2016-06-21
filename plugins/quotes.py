@@ -62,7 +62,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
 
     @group_only
     def get_quote(self, msg, matches):
-        chat_id = msg.dest.id
+        chat_id = abs(msg.dest.id)
         quote_id = matches.group(1)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
@@ -77,7 +77,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
 
     @group_only
     def find_quote(self, msg, matches):
-        chat_id = msg.dest.id
+        chat_id = abs(msg.dest.id)
         search = matches.group(1)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} and quote LIKE ? LIMIT 5".format(self.table_name, chat_id), parameters=("%{0}%".format(search),))
@@ -96,7 +96,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
     @auth.authorize(groups=['admins'])
     @group_only
     def del_quote(self, msg, matches):
-        chat_id = msg.dest.id
+        chat_id = abs(msg.dest.id)
         quote_id = matches.group(1)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
@@ -109,7 +109,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
 
     @group_only
     def add_reply(self, msg, matches):
-        if not hasattr(msg, 'reply_id'):
+        if not hasattr(msg, 'reply'):
             return "The !quotethis must be used in a reply!"
         if not hasattr(msg, 'reply') or msg.reply is None:
             return "The reply is too old, cannot add it." # TODO look into fix in twx that can't load from server
@@ -123,7 +123,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
 
     @group_only
     def get_random_quote(self, msg, matches):
-        chat_id = msg.dest.id
+        chat_id = abs(msg.dest.id)
         results = self.query("SELECT * FROM {0} "
                              "WHERE chat_id = {1} ORDER BY RANDOM() LIMIT 1".format(self.table_name, chat_id))
         if len(results) == 0:
