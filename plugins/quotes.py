@@ -65,7 +65,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
         chat_id = abs(msg.dest.id)
         quote_id = matches.group(1)
         results = self.query("SELECT * FROM {0} "
-                             "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
+                             "WHERE abs(chat_id) = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
         if len(results) == 0:
             return "No such quote in the database for this channel!"
         result = results[0]
@@ -80,7 +80,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
         chat_id = abs(msg.dest.id)
         search = matches.group(1)
         results = self.query("SELECT * FROM {0} "
-                             "WHERE chat_id = {1} and quote LIKE ? LIMIT 5".format(self.table_name, chat_id), parameters=("%{0}%".format(search),))
+                             "WHERE abs(chat_id) = {1} and quote LIKE ? LIMIT 5".format(self.table_name, chat_id), parameters=("%{0}%".format(search),))
 
         if len(results) == 0:
             return "No such quote in the database for this channel!"
@@ -99,12 +99,12 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
         chat_id = abs(msg.dest.id)
         quote_id = matches.group(1)
         results = self.query("SELECT * FROM {0} "
-                             "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
+                             "WHERE abs(chat_id) = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
         if len(results) == 0:
             return "No such quote in the database for this channel!"
         else:
             self.query("DELETE FROM {0} "
-                       "WHERE chat_id = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
+                       "WHERE abs(chat_id) = {1} and quote_id = ? LIMIT 1".format(self.table_name, chat_id), parameters=(quote_id,))
             return "Quote deleted!"
 
     @group_only
@@ -125,7 +125,7 @@ class QuotesPlugin(plugin.TelexPlugin, DatabaseMixin):
     def get_random_quote(self, msg, matches):
         chat_id = abs(msg.dest.id)
         results = self.query("SELECT * FROM {0} "
-                             "WHERE chat_id = {1} ORDER BY RANDOM() LIMIT 1".format(self.table_name, chat_id))
+                             "WHERE abs(chat_id) = {1} ORDER BY RANDOM() LIMIT 1".format(self.table_name, chat_id))
         if len(results) == 0:
             return "No quotes in the database!"
         result = results[0]
