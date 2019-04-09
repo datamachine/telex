@@ -35,15 +35,5 @@ elif [ "$1" = "update" ]; then
   update
 else
   . .virtualenv/bin/activate
-  python3 ./runner.py &
-  while [[ -n $(jobs -p) ]]; do
-      if [[ -e "reload" ]]; then
-        rm -vf "reload"
-        echo RELOADING BOT
-        kill $(jobs -p)
-        python3 ./runner.py &
-      fi
-      sleep 1
-  done
-  
+  python3 ./runner.py 
 fi

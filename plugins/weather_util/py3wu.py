@@ -34,6 +34,10 @@ class Weather:
         return self.data['current_observation']['relative_humidity']
 
     @property
+    def heat_index(self):
+        return self.data['current_observation']['heat_index_f']
+
+    @property
     def temp(self):
         if self.units == 'imperial':
             return self.data['current_observation']['temp_f']

@@ -48,8 +48,8 @@ class WeatherPlugin(plugin.TelexPlugin):
             else:
                 w = self.backend.weather_data(zipcode=matches.group(1))
             if w:
-                report = u"{} ({}) {}{}\n{} {} ({} Relative Humidity)".format(w.name, w.country, w.temp,
-                                                                              w.unit_symbol, w.description, w.icon, w.humidity)
+                report = u"{} ({}) {}{}\n{} {} ({} Relative Humidity, {}{} Heat Index)".format(w.name, w.country, w.temp,
+                                                                              w.unit_symbol, w.description, w.icon, w.humidity, w.heat_index, w.unit_symbol)
 
                 return report
         except Exception as e:

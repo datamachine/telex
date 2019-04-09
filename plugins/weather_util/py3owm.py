@@ -1,7 +1,7 @@
 import urllib.parse
 import urllib.request
 import json
-
+from math import sqrt
 
 class Weather:
     def __init__(self, data, units):
@@ -30,8 +30,28 @@ class Weather:
         return self.data["sys"]["country"]
 
     @property
+    def humidity(self):
+        return self.data['main']['humidity']
+
+    @property
     def temp(self):
         return self.data["main"]["temp"]
+
+    @property
+    def heat_index(self):
+        T = self.temp
+        RH = self.humidity
+        # Implementation of https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
+        if T < 80:
+            return 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (RH * 0.094))
+        else:
+            HI = -42.379 + 2.04901523*T + 10.14333127*RH - .22475541*T*RH - .00683783*T*T - .05481717*RH*RH + .00122874*T*T*RH + .00085282*T*RH*RH - .00000199*T*T*RH*RH
+            if RH < .13 and T < 112:
+                HI -= ((13-RH)/4)*sqrt((17-abs(T-95.))/17)
+            elif RH > .85 and T < 87:
+                HI +=  ((RH-85)/10) * ((87-T)/5)
+            return HI
+
 
     @property
     def description(self):
@@ -57,7 +77,7 @@ class Weather:
 class OpenWeatherMap:
     def __init__(self, api_key, units="metric"):
         self.api_key = api_key
-        self.api_key = "http://api.openweathermap.org/data/2.5"
+        self.api_key = "https://api.openweathermap.org/data/2.5"
 
         self.set_units(units)
 

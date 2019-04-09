@@ -3,7 +3,7 @@ from telex.DatabaseMixin import DatabaseMixin, DbType
 from telex.utils.decorators import group_only
 from functools import partial
 from telex import plugin
-
+import markovify
 
 class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
     """
@@ -18,6 +18,7 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         "^{prefix}seen (([0-9]+)|@(.*)|(.*))": "seen",
         "^{prefix}stats_recent ?([\d]*?)$": "stats_count_recent",
         "^{prefix}stats_regex (.*)": "stats_regex",
+        "^{prefix}markov (([0-9]+)|@(.*)|(.*))": "gen_markov",
     }
 
     usage = [
@@ -27,6 +28,7 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         "{prefix}loadhistory: (Admin) load chatlog database from telegram history.",
         "{prefix}stats_recent (num_of_days): Stats for the only the last n days.",
         "{prefix}stats_regex pattern: Returns stats filtered by python style regex (case insensitive)",
+        "{prefix}markov (uid|@username|full name): Generate sentence for user using their chat history.",
     ]
 
     schema = {
@@ -65,6 +67,27 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
             return self.seen_by_username(abs(chat_id), matches.group(3))
         else:
             return self.seen_by_fullname(abs(chat_id), matches.group(4))
+
+
+    @group_only
+    def gen_markov(self, msg, matches):
+        chat_id = msg.dest.id
+       
+        if matches.group(4) is not None:
+            text = self.markov_by_id(chat_id, matches.group(2))
+        elif matches.group(3) is not None:
+            text = self.markov_by_username(abs(chat_id), matches.group(3))
+        else:
+            text = self.markov_by_fullname(abs(chat_id), matches.group(4))
+
+        try:
+            text_model = markovify.Text(text[0]["fulltext"].replace('?.', '?').replace('!.', '!'))
+            text = ""
+            for i in range(3):
+                text += text_model.make_short_sentence(140, tries=100, ) + " "
+            return "{}".format(text)
+        except:
+            return "Error generating chain."
 
 
     @group_only
@@ -127,9 +150,10 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         if recent is not None:
             recent_query = " AND timestamp > DATETIME('now', '-{} day') ".format(recent)
 
-        query = """SELECT full_name, uid, COUNT(*) as count, ROUND(AVG(LENGTH(message)),2) as avglen FROM {0}
+        query = """SELECT full_name, uid, COUNT(*) as count, ROUND(AVG(LENGTH(message)),2) as avglen, (CAST(COUNT(*) AS float)/CAST(total_count AS float)) as percent FROM {0}
+		   LEFT JOIN (SELECT uid as total_uid, COUNT(*) as total_count FROM ChatLogPlugin WHERE chat_id = {2} GROUP BY uid) total ON total.total_uid = {0}.uid
                    WHERE uid != {1} AND chat_id = {2} {3} {4} GROUP BY uid
-                   ORDER BY count DESC""".format(self.table_name, self.bot.our_id, chat_id, pattern_query, recent_query)
+                   ORDER BY count DESC LIMIT 10""".format(self.table_name, self.bot.our_id, chat_id, pattern_query, recent_query)
         if(pattern is not None):
             results = self.query(query, parameters=(pattern,))
         else:
@@ -138,16 +162,38 @@ class ChatLogPlugin(plugin.TelexPlugin, DatabaseMixin):
         if results is None or len(results) == 0:
            return "No stats match!"
 
-        text = "Channel Chat Statistics (count) (avg len):\n"
+        text = "Top 10 Channel Chat Statistics (count) (avg len, % of total):\n"
         if recent is not None:
             text += "Recent Chat Only (last {} days)\n".format(recent)
         for result in results:
-            text += "{name}: {count} ({avglen})\n".format(name=result["full_name"],
+            text += "{name}: {count} ({avglen}, {percent:.2f}%)\n".format(name=result["full_name"],
                                                           count=result["count"],
-                                                          avglen=result["avglen"])
+                                                          avglen=result["avglen"],
+							  percent=result["percent"]*100)
         return text
 
 
+    def markov_by_username(self, chat_id, username):
+        query = """SELECT group_concat(message, '. ') as fulltext FROM {0}
+                   WHERE username LIKE ? AND chat_id == {1}""".format(self.table_name, chat_id)
+
+        return  self.query(query, parameters=(username,))
+
+
+    def markov_by_fullname(self, chat_id, name):
+        query = """SELECT group_concat(message, '. ') as fulltext FROM {0}
+                   WHERE full_name LIKE ? AND chat_id == {1}""".format(self.table_name, chat_id)
+
+        return self.query(query, parameters=(name,))
+
+
+    def markov_by_id(self, chat_id, uid):
+        query = """SELECT group_concat(message, '. ') as fulltext FROM {0}
+                   WHERE uid == ? AND chat_id == {1}""".format(self.table_name, chat_id)
+
+        return self.query(query, parameters=(uid,))
+
+    
     def seen_by_username(self, chat_id, username):
         query = """SELECT * FROM {0}
                    WHERE username LIKE ? AND chat_id == {1}
